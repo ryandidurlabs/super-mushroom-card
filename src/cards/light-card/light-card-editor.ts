@@ -59,7 +59,7 @@ const SCHEMA: HaFormSchema[] = [
       { name: "timer_enabled", selector: { boolean: {} } },
       {
         name: "timer_duration",
-        selector: { number: { min: 60, max: 3600, step: 60, unit_of_measurement: "seconds" } },
+        selector: { number: { min: 1, max: 3000, step: 1, unit_of_measurement: "seconds" } },
       },
       { name: "default_brightness_enabled", selector: { boolean: {} } },
       {
