@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 1.0.16 (2024-12-01)
+
+### Fixed
+- **Timer countdown display** - Timer countdown now properly appears next to brightness percentage
+  - Simplified timer display logic
+  - Timer is directly added to stateDisplay string before passing to renderStateInfo
+  - Ensured proper re-rendering when timer updates
+  - Removed excessive console logging
+
+The timer countdown should now be visible next to the brightness percentage (e.g., "75% • 5:30") in all views.
+
 ## Version 1.0.15 (2024-12-01)
 
 ### Changed
