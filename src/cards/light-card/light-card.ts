@@ -69,7 +69,7 @@ registerCustomCard({
   description: "Card for light entity",
 });
 
-@customElement(LIGHT_CARD_NAME)
+@customElement("super-mushroom-light-card")
 export class LightCard
   extends MushroomBaseCard<LightCardConfig, LightEntity>
   implements LovelaceCard
