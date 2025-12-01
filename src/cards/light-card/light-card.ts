@@ -689,7 +689,6 @@ export class LightCard
         class=${classMap({ "fill-container": appearance.fill_container })}
       >
         <mushroom-card .appearance=${appearance} ?rtl=${rtl}>
-          ${this.renderSettingsIcon()}
           <mushroom-state-item
             ?rtl=${rtl}
             .appearance=${appearance}
@@ -699,6 +698,7 @@ export class LightCard
               hasDoubleClick: hasAction(this._config.double_tap_action),
             })}
           >
+            ${this.renderSettingsIcon()}
             ${picture
               ? this.renderPicture(picture)
               : this.renderIcon(stateObj, icon)}
@@ -754,13 +754,13 @@ export class LightCard
     if (!this._config?.motion_enabled) {
       return nothing;
     }
-    // Position motion icon at bottom-right when both icons are present, otherwise default position
+    // Position motion icon at top-left when both icons are present, otherwise default position
     const hasTimer = this._config?.timer_enabled;
-    const bottomOffset = hasTimer ? "-8px" : "-3px";
+    const topOffset = hasTimer ? "-8px" : "-3px";
     const rtl = computeRTL(this.hass);
-    const horizontalPos = rtl ? "left: -3px; right: auto;" : "right: -3px; left: auto;";
+    const horizontalPos = rtl ? "right: -3px; left: auto;" : "left: -3px; right: auto;";
     return html`
-      <div slot="badge" class="motion-badge-wrapper" style="position: absolute; bottom: ${bottomOffset}; ${horizontalPos} top: auto;">
+      <div slot="badge" class="motion-badge-wrapper" style="position: absolute; top: ${topOffset}; ${horizontalPos} bottom: auto;">
         <mushroom-badge-icon
           class="motion-badge"
           .icon=${"mdi:motion-sensor"}
@@ -904,6 +904,7 @@ export class LightCard
       css`
         mushroom-state-item {
           cursor: pointer;
+          position: relative;
         }
         mushroom-shape-icon {
           --icon-color: rgb(var(--rgb-state-light));
@@ -920,11 +921,14 @@ export class LightCard
         .settings-icon-container {
           position: absolute;
           top: 8px;
-          left: 8px;
-          z-index: 100;
+          right: 8px;
+          left: auto;
+          z-index: 1000;
           cursor: pointer;
           pointer-events: auto;
-          display: block;
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         .settings-icon {
           --mdc-icon-button-size: 32px;
@@ -932,14 +936,16 @@ export class LightCard
           color: var(--secondary-text-color);
           opacity: 0.7;
           pointer-events: auto;
-          display: block;
+          display: block !important;
+          visibility: visible !important;
         }
         .settings-icon:hover {
-          opacity: 1;
+          opacity: 1 !important;
         }
         .settings-icon-container ha-icon-button {
           pointer-events: auto;
-          display: block;
+          display: block !important;
+          visibility: visible !important;
         }
         mushroom-card {
           position: relative;
