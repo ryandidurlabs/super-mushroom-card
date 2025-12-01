@@ -209,10 +209,8 @@ export class LightCard
           this.subscribeToMotionSensor();
         }
       }
-      // Force update if timer is running to ensure display updates
-      if (this._timerRemaining != null && this._timerRemaining > 0) {
-        this.requestUpdate();
-      }
+      // Don't call requestUpdate() here - it causes infinite loops
+      // The timer interval will handle updates via updateTimer()
     } catch (error) {
       console.warn("Super Mushroom Light Card: Error in updated lifecycle", error);
     }
@@ -301,9 +299,9 @@ export class LightCard
                 this._defaultBrightnessApplied = false;
               }
               
-              // Update brightness and timer display
+              // Update brightness - don't call requestUpdate() here to avoid loops
+              // The timer interval and Lit's reactive system will handle updates
               this.updateBrightness();
-              this.requestUpdate();
             }
           } catch (e) {
             console.warn("Super Mushroom Light Card: Error in state change handler", e);
@@ -609,12 +607,15 @@ export class LightCard
     const now = Date.now();
     const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
     
-    // Always update the state - this is a @state() property so it will trigger Lit to re-render
-    // Even if the value is the same, we want to ensure the display updates
+    // Update the state - this is a @state() property so it will automatically trigger Lit to re-render
+    // Only update if value changed to avoid unnecessary re-renders
+    const oldRemaining = this._timerRemaining;
     this._timerRemaining = remaining > 0 ? remaining : 0;
     
-    // Always request update to ensure the display refreshes every second
-    this.requestUpdate();
+    // Only request update if value actually changed
+    if (oldRemaining !== this._timerRemaining) {
+      this.requestUpdate();
+    }
 
     if (remaining <= 0) {
       // Timer expired

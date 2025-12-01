@@ -1,7 +1,7 @@
 {
   "domain": "super_mushroom",
   "name": "Super Mushroom Cards",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "documentation": "https://github.com/ryandidurlabs/super-mushroom-card",
   "issue_tracker": "https://github.com/ryandidurlabs/super-mushroom-card/issues",
   "codeowners": ["@ryandidurlabs"],

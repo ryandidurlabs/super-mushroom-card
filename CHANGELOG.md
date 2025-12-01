@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 1.0.20 (2024-12-01)
+
+### Critical Fix
+- **Page freeze on button press** - Fixed infinite loop causing page to freeze
+  - Removed `requestUpdate()` call from `updated()` lifecycle method that was causing infinite re-render loop
+  - Removed `requestUpdate()` from state change handler to prevent render loops
+  - Optimized timer update to only call `requestUpdate()` when value actually changes
+  - Lit's `@state()` decorator automatically handles re-renders, so manual `requestUpdate()` calls were causing loops
+
+### Technical Details
+- The `requestUpdate()` in `updated()` was triggering re-renders which called `updated()` again
+- State change handler was calling `requestUpdate()` on every state change, creating loops
+- Timer now only updates when the remaining time value actually changes
+
 ## Version 1.0.19 (2024-12-01)
 
 ### Fixed
