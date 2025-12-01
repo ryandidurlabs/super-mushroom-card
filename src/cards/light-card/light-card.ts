@@ -478,16 +478,6 @@ export class LightCard
       // to only apply when turning on, not when adjusting
     }, 200);
   }
-  
-  private startTimerInterval(): void {
-    this.clearTimer(); // Clear any existing interval
-    
-    this._timerInterval = window.setInterval(() => {
-      this.updateTimer();
-    }, 1000);
-    // Call immediately to update display
-    this.updateTimer();
-  }
 
   private startTimerInterval(): void {
     this.clearTimer(); // Clear any existing interval
