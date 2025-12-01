@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.0.13 (2024-12-01)
+
+### Fixed
+- **Settings icon rendering** - Changed from `ha-icon-button` to `ha-icon` for proper icon display
+  - Fixed CSS to target `ha-icon` instead of `ha-icon-button`
+  - Icon should now be visible instead of just showing a circle
+- **Timer countdown debugging** - Added comprehensive console logging
+  - Improved timer initialization to start timer if light is already on when card loads
+  - Added logging to help diagnose timer countdown display issues
+
+### Changed
+- Added console logging throughout timer lifecycle for debugging
+- Timer now automatically starts if light is on but timer hasn't started yet
+
+**Note**: Check browser console (F12) for timer debugging information. The logs will show:
+- When timer initializes
+- When timer starts
+- Timer updates every second
+- When timer is added to display
+
 ## Version 1.0.12 (2024-12-01)
 
 ### Fixed
