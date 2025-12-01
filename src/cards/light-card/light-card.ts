@@ -207,63 +207,8 @@ export class LightCard
               this.startTimer();
             }
             
-            // Apply default brightness when light turns on (only if enabled and just turned on)
-            // Only apply if state changed from off to on (not just brightness change)
-            // Also check that brightness is not already at target to prevent loops
-            if (
-              newState?.state === "on" &&
-              oldState?.state !== "on" &&
-              !this._defaultBrightnessApplied &&
-              this._config?.default_brightness_enabled &&
-              this._config?.default_brightness != null &&
-              this._config?.default_brightness >= 0 &&
-              this._config?.default_brightness <= 100
-            ) {
-              if (supportsBrightnessControl(newState)) {
-                // Check current brightness - only apply if it's significantly different
-                const currentBrightness = newState.attributes.brightness;
-                const currentBrightnessPct = currentBrightness 
-                  ? Math.round((currentBrightness / 255) * 100) 
-                  : null;
-                const targetBrightnessPct = this._config.default_brightness;
-                
-                // Only apply if brightness is not already at target (within 5% tolerance)
-                if (currentBrightnessPct == null || 
-                    Math.abs(currentBrightnessPct - targetBrightnessPct) > 5) {
-                  // Mark as applied immediately to prevent loops
-                  this._defaultBrightnessApplied = true;
-                  // Small delay to ensure state is updated
-                  setTimeout(() => {
-                    this.hass!.callService("light", "turn_on", {
-                      entity_id: this._config!.entity,
-                      brightness_pct: this._config!.default_brightness,
-                    });
-                  }, 200);
-                } else {
-                  // Already at target brightness, just mark as applied
-                  this._defaultBrightnessApplied = true;
-                }
-              }
-            }
-            
-            // Reset flag if brightness changes significantly (user adjusted it)
-            if (
-              newState?.state === "on" &&
-              oldState?.state === "on" &&
-              this._defaultBrightnessApplied &&
-              newState.attributes.brightness != null &&
-              oldState.attributes.brightness != null
-            ) {
-              const oldBrightnessPct = Math.round((oldState.attributes.brightness / 255) * 100);
-              const newBrightnessPct = Math.round((newState.attributes.brightness / 255) * 100);
-              const targetBrightnessPct = this._config?.default_brightness || 0;
-              
-              // If brightness changed significantly and is different from target, reset flag
-              if (Math.abs(newBrightnessPct - oldBrightnessPct) > 5 && 
-                  Math.abs(newBrightnessPct - targetBrightnessPct) > 5) {
-                this._defaultBrightnessApplied = false;
-              }
-            }
+            // Note: Default brightness is now handled in _handleAction when user clicks the card
+            // This prevents loops from state change events
             
             // If light just turned off, clear timer and reset default brightness flag
             if (
@@ -320,15 +265,40 @@ export class LightCard
     if (actionType === "tap" && this._stateObj) {
       const tapAction = this._config?.tap_action;
       if (tapAction?.action === "toggle") {
+        const wasOff = !isActive(this._stateObj);
+        
+        // If turning on, apply default brightness first (if enabled)
+        if (wasOff && 
+            this._config?.default_brightness_enabled &&
+            this._config?.default_brightness != null &&
+            this._config?.default_brightness >= 0 &&
+            this._config?.default_brightness <= 100) {
+          if (supportsBrightnessControl(this._stateObj)) {
+            // Turn on with default brightness
+            this.hass!.callService("light", "turn_on", {
+              entity_id: this._config.entity,
+              brightness_pct: this._config.default_brightness,
+            });
+            this._defaultBrightnessApplied = true;
+            
+            // Start timer if enabled
+            if (this._config?.timer_enabled) {
+              setTimeout(() => this.startTimer(), 200);
+            }
+            return; // Don't call handleAction again
+          }
+        }
+        
         // If turning on and timer is enabled, start timer
-        if (!isActive(this._stateObj) && this._config?.timer_enabled) {
+        if (wasOff && this._config?.timer_enabled) {
           // Light will be turned on by handleAction, then we start timer
           handleAction(this, this.hass!, this._config!, actionType);
           setTimeout(() => this.startTimer(), 100);
           return;
         }
+        
         // If turning off, clear timer and reset default brightness flag
-        if (isActive(this._stateObj)) {
+        if (!wasOff) {
           if (this._config?.timer_enabled) {
             this.clearTimer();
           }
