@@ -184,9 +184,17 @@ If you want to help translating Mushroom, you can translate it directly from you
 
 Help about card mod configuration is not provided in this repository. More info in the [state of card mod support](https://github.com/piitaya/lovelace-mushroom/issues/1366).
 
+## Support
+
+If you find this project useful and would like to support its development, consider buying me a coffee! ☕
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/didurlabs)
+
+Your support helps keep this project maintained and allows for new features and improvements.
+
 ## Credits
 
-The design is inspired by [7ahang’s work][7ahang] on Behance and [Ui Lovelace Minimalist][ui-lovelace-minimalist].
+The design is inspired by [7ahang's work][7ahang] on Behance and [Ui Lovelace Minimalist][ui-lovelace-minimalist].
 
 <!-- Badges -->
 
