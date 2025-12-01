@@ -1,11 +1,10 @@
 import { css, CSSResultGroup, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 import { HomeAssistant } from "../../ha";
 import setupCustomlocalize from "../../localize";
 import { Info, INFOS } from "../../utils/info";
 import "./../form/mushroom-select";
 
-@customElement("mushroom-info-picker")
 export class InfoPicker extends LitElement {
   @property() public label = "";
 
@@ -69,4 +68,9 @@ export class InfoPicker extends LitElement {
 
 function capitalizeFirstLetter(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Guard against duplicate registration
+if (!customElements.get("mushroom-info-picker")) {
+  customElements.define("mushroom-info-picker", InfoPicker);
 }

@@ -606,15 +606,31 @@ export class LightCard
   }
 
   private startTimerInterval(): void {
-    this.clearTimer(); // Clear any existing interval
+    // Clear any existing interval first
+    if (this._timerInterval) {
+      clearInterval(this._timerInterval);
+      this._timerInterval = undefined;
+    }
     
+    // Start new interval
     this._timerInterval = window.setInterval(() => {
       this.updateTimer();
     }, 1000);
+    
+    console.log("Super Mushroom Light Card: Timer interval started", {
+      intervalId: this._timerInterval,
+      expirationTime: this._timerExpirationTime,
+      currentRemaining: this._timerRemaining
+    });
   }
 
   private updateTimer(): void {
     if (!this._config?.timer_enabled || !this._config.entity || !this._timerExpirationTime) {
+      console.log("Super Mushroom Light Card: Timer update - conditions not met", {
+        timer_enabled: this._config?.timer_enabled,
+        entity: this._config?.entity,
+        expirationTime: this._timerExpirationTime
+      });
       this.clearTimer();
       return;
     }
@@ -623,13 +639,26 @@ export class LightCard
     const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
     
     // Update the state to trigger re-render - this is a @state() property so it will trigger Lit to re-render
+    const oldRemaining = this._timerRemaining;
     this._timerRemaining = remaining > 0 ? remaining : 0;
     
+    console.log("Super Mushroom Light Card: Timer update", {
+      oldRemaining,
+      newRemaining: this._timerRemaining,
+      formatted: this.formatTime(this._timerRemaining),
+      expirationTime: this._timerExpirationTime,
+      now,
+      willUpdate: oldRemaining !== this._timerRemaining
+    });
+    
     // Force update to ensure the display refreshes with the new timer value
-    this.requestUpdate();
+    if (oldRemaining !== this._timerRemaining) {
+      this.requestUpdate();
+    }
 
     if (remaining <= 0) {
       // Timer expired
+      console.log("Super Mushroom Light Card: Timer expired, turning off light");
       this.turnOffLight();
       this.clearTimer();
     }

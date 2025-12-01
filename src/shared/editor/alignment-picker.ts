@@ -1,5 +1,5 @@
 import { css, CSSResultGroup, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 import { HomeAssistant } from "../../ha";
 import setupCustomlocalize from "../../localize";
 import "./../form/mushroom-select";
@@ -15,7 +15,6 @@ const ICONS: Record<Alignment, string> = {
   justify: "mdi:format-align-justify",
 };
 
-@customElement("mushroom-alignment-picker")
 export class AlignmentPicker extends LitElement {
   @property() public label = "";
 
@@ -76,4 +75,9 @@ export class AlignmentPicker extends LitElement {
       }
     `;
   }
+}
+
+// Guard against duplicate registration
+if (!customElements.get("mushroom-alignment-picker")) {
+  customElements.define("mushroom-alignment-picker", AlignmentPicker);
 }

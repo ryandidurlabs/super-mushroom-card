@@ -1,12 +1,11 @@
 import { css, CSSResultGroup, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { HomeAssistant } from "../../ha";
 import setupCustomlocalize from "../../localize";
 import { COLORS, computeColorName, computeRgbColor } from "../../utils/colors";
 import "./../form/mushroom-select";
 
-@customElement("mushroom-color-picker")
 export class ColorPicker extends LitElement {
   @property() public label = "";
 
@@ -88,4 +87,9 @@ export class ColorPicker extends LitElement {
       }
     `;
   }
+}
+
+// Guard against duplicate registration
+if (!customElements.get("mushroom-color-picker")) {
+  customElements.define("mushroom-color-picker", ColorPicker);
 }

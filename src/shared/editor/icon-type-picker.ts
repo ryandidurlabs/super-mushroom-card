@@ -1,11 +1,10 @@
 import { css, CSSResultGroup, html, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 import { HomeAssistant } from "../../ha";
 import setupCustomlocalize from "../../localize";
 import { ICON_TYPES } from "../../utils/info";
 import "../form/mushroom-select";
 
-@customElement("mushroom-icon-type-picker")
 export class IconTypePicker extends LitElement {
   @property() public label = "";
 
@@ -68,4 +67,9 @@ export class IconTypePicker extends LitElement {
 
 function capitalizeFirstLetter(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Guard against duplicate registration
+if (!customElements.get("mushroom-icon-type-picker")) {
+  customElements.define("mushroom-icon-type-picker", IconTypePicker);
 }
