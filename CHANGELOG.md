@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.0.1 (2024-11-30)
+
+### Fixed
+- Fixed timer countdown display not showing - added proper re-rendering when timer starts and updates
+- Fixed custom element registration to use string literal instead of variable
+- Improved timer state management to prevent duplicate timers
+- Timer now updates immediately when interval starts
+
 ## Version 1.0.0 (2024-11-30)
 
 ### Added
