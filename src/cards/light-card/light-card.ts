@@ -496,12 +496,16 @@ export class LightCard
       return;
     }
 
-    // Always check localStorage first for existing timer
+    // Always check localStorage first for existing timer - this works even if _stateObj isn't ready yet
     const timerKey = `timer_expiration_${this._config.entity}`;
     const storedExpiration = localStorage.getItem(timerKey);
     
-    // If we have a stored timer and the light is on, restore it
-    if (storedExpiration && this._stateObj && isActive(this._stateObj)) {
+    // Get entity state directly from hass if _stateObj isn't available yet
+    const entityState = this._stateObj || (this.hass?.states?.[this._config.entity]);
+    const isLightOn = entityState ? isActive(entityState) : false;
+    
+    // If we have a stored timer, check if it's still valid
+    if (storedExpiration) {
       const expirationTime = parseInt(storedExpiration, 10);
       
       if (isNaN(expirationTime)) {
@@ -515,7 +519,7 @@ export class LightCard
       const now = Date.now();
       const calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
       
-      if (calculatedRemaining > 0) {
+      if (calculatedRemaining > 0 && isLightOn) {
         // Restore timer from localStorage - this continues counting from where it left off
         this._timerExpirationTime = expirationTime;
         this._timerRemaining = calculatedRemaining;
@@ -529,26 +533,30 @@ export class LightCard
         // Start the interval to continue counting
         this.startTimerInterval();
         return; // Don't start a new timer - we restored the existing one
-      } else {
+      } else if (calculatedRemaining <= 0 && isLightOn) {
         // Timer expired while page was away - turn off light and clear
         this.turnOffLight();
+        this.clearTimer();
+        return;
+      } else if (!isLightOn) {
+        // Light is off - clear stored timer
         this.clearTimer();
         return;
       }
     }
     
     // No stored timer - if light is on and timer is enabled, start a new one
-    if (this._stateObj && isActive(this._stateObj) && !this._timerRemaining) {
+    if (isLightOn && !this._timerRemaining && !this._timerInterval) {
       this.startTimer();
-    } else if (!this._stateObj || !isActive(this._stateObj)) {
+    } else if (!isLightOn) {
       // Light is off - clear any stored timer
       this.clearTimer();
     }
   }
 
   private checkTimerState(): void {
-    if (!this._config?.timer_enabled || !this._stateObj) {
-      // Timer disabled or no state - clear interval but don't clear localStorage
+    if (!this._config?.timer_enabled || !this._config.entity) {
+      // Timer disabled - clear interval but don't clear localStorage
       // (in case timer gets re-enabled)
       if (this._timerInterval) {
         clearInterval(this._timerInterval);
@@ -559,15 +567,21 @@ export class LightCard
       return;
     }
 
+    // Get entity state directly from hass if _stateObj isn't available yet
+    const entityState = this._stateObj || (this.hass?.states?.[this._config.entity]);
+    if (!entityState) {
+      return; // Can't check state yet
+    }
+
     // If light is off, clear timer and localStorage
-    if (!isActive(this._stateObj)) {
+    if (!isActive(entityState)) {
       this.clearTimer();
       return;
     }
 
     // If light is on and timer is enabled but not running, check localStorage first
     // This is a fallback in case initializeTimer didn't run or didn't restore properly
-    if (isActive(this._stateObj) && this._timerRemaining == null && !this._timerInterval) {
+    if (isActive(entityState) && this._timerRemaining == null && !this._timerInterval) {
       const timerKey = `timer_expiration_${this._config.entity}`;
       const storedExpiration = localStorage.getItem(timerKey);
       

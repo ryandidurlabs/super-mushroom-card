@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.0.23 (2024-12-01)
+
+### Fixed
+- **Timer persistence - direct state access** - Timer now checks entity state directly from hass
+  - Fixed issue where timer couldn't restore because `_stateObj` wasn't available yet
+  - Now uses `this.hass.states[entity]` directly if `_stateObj` isn't ready
+  - Timer can now restore from localStorage even before `_stateObj` is initialized
+  - Improved reliability of timer restoration on page load
+
+### Technical Details
+- `initializeTimer()` now checks `this.hass.states[entity]` directly as fallback
+- `checkTimerState()` also uses direct state access
+- Timer restoration no longer depends on `_stateObj` being available
+- This ensures timer can restore immediately when page loads
+
 ## Version 1.0.22 (2024-12-01)
 
 ### Fixed
