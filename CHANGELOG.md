@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 1.0.14 (2024-12-01)
+
+### Added
+- **Settings Modal** - Click the settings gear icon to open a modal with timer and motion options
+  - Enable/disable timer toggle
+  - Timer duration input (shown when timer is enabled)
+  - Enable/disable motion sensor toggle
+  - Motion sensor entity picker (shown when motion is enabled)
+  - Settings sync with card UI configuration editor
+  - Modal can be closed by clicking outside or the close button
+
+### Changed
+- Settings icon now opens a modal instead of the full card editor
+- Modal provides quick access to timer and motion settings
+- All settings changes are immediately reflected in the card
+
 ## Version 1.0.13 (2024-12-01)
 
 ### Fixed
