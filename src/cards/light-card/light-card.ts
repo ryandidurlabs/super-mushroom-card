@@ -337,20 +337,41 @@ export class LightCard
   }
 
   private startTimer(): void {
-    if (!this._config?.timer_enabled || !this._config.entity || !this._stateObj || !isActive(this._stateObj)) {
+    if (!this._config?.timer_enabled || !this._config.entity || !this._stateObj) {
       return;
     }
 
-    const duration = this._config.timer_duration || 300; // default 5 minutes
-    const expirationTime = Date.now() + duration * 1000;
-    
-    // Store expiration in localStorage for persistence
-    const timerKey = `timer_expiration_${this._config.entity}`;
-    localStorage.setItem(timerKey, expirationTime.toString());
+    // Wait a bit for state to update after toggle
+    setTimeout(() => {
+      if (!isActive(this._stateObj!)) {
+        return;
+      }
 
-    this._timerExpirationTime = expirationTime;
-    this._timerRemaining = duration;
-    this.startTimerInterval();
+      const duration = this._config.timer_duration || 300; // default 5 minutes
+      const startTime = Date.now();
+      const expirationTime = startTime + duration * 1000;
+      
+      // Store expiration and start time in localStorage for persistence
+      const timerKey = `timer_expiration_${this._config.entity}`;
+      localStorage.setItem(timerKey, expirationTime.toString());
+      localStorage.setItem(`${timerKey}_start`, startTime.toString());
+
+      this._timerExpirationTime = expirationTime;
+      this._timerRemaining = duration;
+      this.startTimerInterval();
+      
+      // Apply default brightness if configured
+      if (this._config.default_brightness != null && 
+          this._config.default_brightness >= 0 && 
+          this._config.default_brightness <= 100) {
+        if (supportsBrightnessControl(this._stateObj!)) {
+          this.hass!.callService("light", "turn_on", {
+            entity_id: this._config.entity,
+            brightness_pct: this._config.default_brightness,
+          });
+        }
+      }
+    }, 200);
   }
 
   private startTimerInterval(): void {
