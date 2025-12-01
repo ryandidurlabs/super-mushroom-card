@@ -30,7 +30,11 @@
       "fan": {
         "show_direction_control": "Direction control?",
         "show_oscillate_control": "Oscillate control?",
-        "show_percentage_control": "Percentage control?"
+        "show_percentage_control": "Percentage control?",
+        "timer_enabled": "Enable timer",
+        "timer_duration": "Timer duration (seconds)",
+        "motion_enabled": "Enable motion sensor",
+        "motion_sensor": "Motion sensor entity"
       },
       "generic": {
         "entity": "Entity",

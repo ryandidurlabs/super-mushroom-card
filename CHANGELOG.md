@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 1.0.26 (2024-12-01)
+
+### Added
+- **Timer and Motion functionality for Fan Card** - Fan card now has the same timer and motion features as Light card
+  - Timer functionality: Automatically turn off fan after specified duration
+  - Motion sensor support: Automatically control fan based on motion sensor
+  - Timer countdown display: Shows remaining time next to fan percentage
+  - Settings modal: In-card settings for timer and motion options
+  - Timer and motion icons: Visual indicators when features are enabled
+  - Smooth countdown: Timer counts down smoothly second by second
+  - Persistent timer: Timer continues counting even after page reload
+
+### Technical Details
+- Added timer and motion config options to `fan-card-config.ts`
+- Implemented all timer and motion logic in `fan-card.ts` (same as light card)
+- Added timer and motion options to `fan-card-editor.ts` for UI configuration
+- Added translations for fan card timer and motion options
+- Fixed TypeScript warnings for undefined checks
+
 ## Version 1.0.25 (2024-12-01)
 
 ### Improved

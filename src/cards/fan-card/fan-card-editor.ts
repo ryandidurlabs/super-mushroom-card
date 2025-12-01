@@ -16,7 +16,11 @@ const FAN_LABELS = [
   "icon_animation",
   "show_percentage_control",
   "show_oscillate_control",
-  "show_direction_control"
+  "show_direction_control",
+  "timer_enabled",
+  "timer_duration",
+  "motion_enabled",
+  "motion_sensor",
 ];
 
 const SCHEMA: HaFormSchema[] = [
@@ -43,6 +47,35 @@ const SCHEMA: HaFormSchema[] = [
       { name: "show_oscillate_control", selector: { boolean: {} } },
       { name: "show_direction_control", selector: { boolean: {} } },
       { name: "collapsible_controls", selector: { boolean: {} } },
+    ],
+  },
+  {
+    type: "grid",
+    name: "",
+    schema: [
+      { name: "timer_enabled", selector: { boolean: {} } },
+      {
+        name: "timer_duration",
+        selector: { number: { min: 1, max: 3000, step: 1, unit_of_measurement: "seconds" } },
+      },
+    ],
+  },
+  {
+    type: "grid",
+    name: "",
+    schema: [
+      { name: "motion_enabled", selector: { boolean: {} } },
+      {
+        name: "motion_sensor",
+        selector: { 
+          entity: { 
+            domain: ["binary_sensor"],
+            filter: {
+              device_class: "motion"
+            }
+          } 
+        },
+      },
     ],
   },
   ...computeActionsFormSchema(),

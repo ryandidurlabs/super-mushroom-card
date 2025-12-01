@@ -1,6 +1,6 @@
 {
   "name": "super-mushroom-cards",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Super Mushroom Cards - Enhanced Mushroom Cards with Timer and Motion features",
   "main": "index.js",
   "scripts": {

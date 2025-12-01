@@ -1,4 +1,4 @@
-import { assign, boolean, object, optional } from "superstruct";
+import { assign, boolean, number, object, optional, string } from "superstruct";
 import {
   actionsSharedConfigStruct,
   ActionsSharedConfig,
@@ -23,6 +23,12 @@ export type FanCardConfig = LovelaceCardConfig &
     show_oscillate_control?: boolean;
     show_direction_control?: boolean;
     collapsible_controls?: boolean;
+    // Timer functionality
+    timer_enabled?: boolean;
+    timer_duration?: number; // in seconds
+    // Motion functionality
+    motion_enabled?: boolean;
+    motion_sensor?: string; // entity_id of the motion sensor
   };
 
 export const fanCardConfigStruct = assign(
@@ -38,5 +44,9 @@ export const fanCardConfigStruct = assign(
     show_oscillate_control: optional(boolean()),
     show_direction_control: optional(boolean()),
     collapsible_controls: optional(boolean()),
+    timer_enabled: optional(boolean()),
+    timer_duration: optional(number()),
+    motion_enabled: optional(boolean()),
+    motion_sensor: optional(string()),
   })
 );
