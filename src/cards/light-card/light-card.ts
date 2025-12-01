@@ -465,7 +465,8 @@ export class LightCard
         this._timerRemaining != null &&
         this._timerRemaining > 0
       ) {
-        stateDisplay = `${stateDisplay} • ${this.formatTime(this._timerRemaining)}`;
+        const timeStr = this.formatTime(this._timerRemaining);
+        stateDisplay = `${stateDisplay} • ${timeStr}`;
       }
     } else if (
       this._config?.timer_enabled &&
