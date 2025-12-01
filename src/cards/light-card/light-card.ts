@@ -486,34 +486,59 @@ export class LightCard
   // Timer methods
   private initializeTimer(): void {
     if (!this._config?.timer_enabled || !this._config.entity) {
-      this.clearTimer();
+      // Timer disabled - clear any existing timer
+      if (this._timerInterval) {
+        clearInterval(this._timerInterval);
+        this._timerInterval = undefined;
+      }
+      this._timerRemaining = undefined;
+      this._timerExpirationTime = undefined;
       return;
     }
 
-    // Timer initialization - check for existing timer in localStorage first
+    // Always check localStorage first for existing timer
     const timerKey = `timer_expiration_${this._config.entity}`;
     const storedExpiration = localStorage.getItem(timerKey);
     
+    // If we have a stored timer and the light is on, restore it
     if (storedExpiration && this._stateObj && isActive(this._stateObj)) {
       const expirationTime = parseInt(storedExpiration, 10);
+      
+      if (isNaN(expirationTime)) {
+        // Invalid stored value - clear it
+        localStorage.removeItem(timerKey);
+        localStorage.removeItem(`${timerKey}_start`);
+        return;
+      }
       
       // Calculate remaining time based on expiration time (works even after page reload)
       const now = Date.now();
       const calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
       
       if (calculatedRemaining > 0) {
-        // Restore timer from localStorage
+        // Restore timer from localStorage - this continues counting from where it left off
         this._timerExpirationTime = expirationTime;
         this._timerRemaining = calculatedRemaining;
+        
+        // Clear any existing interval before starting a new one
+        if (this._timerInterval) {
+          clearInterval(this._timerInterval);
+          this._timerInterval = undefined;
+        }
+        
+        // Start the interval to continue counting
         this.startTimerInterval();
-        // Don't call requestUpdate() here - let Lit handle it via @state()
+        return; // Don't start a new timer - we restored the existing one
       } else {
-        // Timer expired while page was away - turn off light
+        // Timer expired while page was away - turn off light and clear
         this.turnOffLight();
         this.clearTimer();
+        return;
       }
-    } else if (this._stateObj && isActive(this._stateObj) && !this._timerRemaining && !storedExpiration) {
-      // Light is on but no timer in localStorage and no timer running - start new one
+    }
+    
+    // No stored timer - if light is on and timer is enabled, start a new one
+    if (this._stateObj && isActive(this._stateObj) && !this._timerRemaining) {
       this.startTimer();
     } else if (!this._stateObj || !isActive(this._stateObj)) {
       // Light is off - clear any stored timer
@@ -523,40 +548,52 @@ export class LightCard
 
   private checkTimerState(): void {
     if (!this._config?.timer_enabled || !this._stateObj) {
-      this.clearTimer();
+      // Timer disabled or no state - clear interval but don't clear localStorage
+      // (in case timer gets re-enabled)
+      if (this._timerInterval) {
+        clearInterval(this._timerInterval);
+        this._timerInterval = undefined;
+      }
+      this._timerRemaining = undefined;
+      this._timerExpirationTime = undefined;
       return;
     }
 
-    // If light is off, clear timer
+    // If light is off, clear timer and localStorage
     if (!isActive(this._stateObj)) {
       this.clearTimer();
       return;
     }
 
     // If light is on and timer is enabled but not running, check localStorage first
-    if (isActive(this._stateObj) && this._timerRemaining == null) {
+    // This is a fallback in case initializeTimer didn't run or didn't restore properly
+    if (isActive(this._stateObj) && this._timerRemaining == null && !this._timerInterval) {
       const timerKey = `timer_expiration_${this._config.entity}`;
       const storedExpiration = localStorage.getItem(timerKey);
       
-      // Only start new timer if there's no stored timer in localStorage
-      if (!storedExpiration) {
-        this.startTimer();
-      } else {
-        // There's a stored timer - initializeTimer should have handled it, but if not, restore it
+      if (storedExpiration) {
+        // There's a stored timer - restore it
         const expirationTime = parseInt(storedExpiration, 10);
-        const now = Date.now();
-        const calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
-        
-        if (calculatedRemaining > 0) {
-          this._timerExpirationTime = expirationTime;
-          this._timerRemaining = calculatedRemaining;
-          this.startTimerInterval();
-        } else {
-          // Timer expired
-          this.turnOffLight();
-          this.clearTimer();
+        if (!isNaN(expirationTime)) {
+          const now = Date.now();
+          const calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
+          
+          if (calculatedRemaining > 0) {
+            this._timerExpirationTime = expirationTime;
+            this._timerRemaining = calculatedRemaining;
+            this.startTimerInterval();
+            return; // Restored from localStorage
+          } else {
+            // Timer expired
+            this.turnOffLight();
+            this.clearTimer();
+            return;
+          }
         }
       }
+      
+      // No stored timer - start a new one
+      this.startTimer();
     }
   }
 
@@ -572,18 +609,23 @@ export class LightCard
       }
 
       const duration = (this._config?.timer_duration || 300); // default 5 minutes
-      const startTime = Date.now();
-      const expirationTime = startTime + duration * 1000;
+      const expirationTime = Date.now() + duration * 1000;
       
-      // Store expiration and start time in localStorage for persistence
+      // Store expiration time in localStorage for persistence across page reloads
       const timerKey = `timer_expiration_${this._config?.entity || ""}`;
       localStorage.setItem(timerKey, expirationTime.toString());
-      localStorage.setItem(`${timerKey}_start`, startTime.toString());
 
       this._timerExpirationTime = expirationTime;
       this._timerRemaining = duration;
+      
+      // Clear any existing interval before starting a new one
+      if (this._timerInterval) {
+        clearInterval(this._timerInterval);
+        this._timerInterval = undefined;
+      }
+      
       this.startTimerInterval();
-      this.requestUpdate(); // Force re-render to show timer
+      // Don't call requestUpdate() - Lit's @state() will handle it
     }, 200);
   }
 

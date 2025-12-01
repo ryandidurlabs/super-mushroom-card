@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 1.0.22 (2024-12-01)
+
+### Fixed
+- **Timer persistence on page reload** - Timer now properly continues from stored expiration time
+  - Improved `initializeTimer()` to always check localStorage first before starting new timer
+  - Fixed `checkTimerState()` to not interfere with restored timers
+  - Removed unnecessary `startTime` storage (only expiration time is needed)
+  - Timer now correctly restores and continues counting after page reload
+  - Timer continues counting in background even when page is closed
+
+### Technical Details
+- `initializeTimer()` now always checks localStorage first
+- If stored timer exists and light is on, it restores the timer
+- If stored timer expired, it turns off the light
+- Only starts new timer if no stored timer exists
+- `checkTimerState()` now acts as fallback and respects existing timers
+
 ## Version 1.0.21 (2024-12-01)
 
 ### Fixed
