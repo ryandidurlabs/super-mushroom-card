@@ -507,10 +507,12 @@ export class LightCard
     // Check for existing timer when page loads - same logic as timer-motion-card.js
     if (isLightOn) {
       // Calculate remaining time from stored expiration or entity.last_changed
+      // This sets _timerRemaining to the correct value ONCE when page loads
       this.calculateRemainingTime();
       
       if (this._timerRemaining != null && this._timerRemaining > 0) {
         // Timer is still active - start the interval if not already running
+        // The interval will just decrement _timerRemaining for smooth counting
         if (!this._timerInterval) {
           this.startTimerInterval();
         }
@@ -695,7 +697,7 @@ export class LightCard
   }
 
   private updateTimer(): void {
-    if (!this._config?.timer_enabled || !this._config.entity || !this._timerExpirationTime) {
+    if (!this._config?.timer_enabled || !this._config.entity) {
       this.clearTimer();
       return;
     }
@@ -706,20 +708,27 @@ export class LightCard
       return;
     }
 
-    const now = Date.now();
-    const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
-    
-    // Update the state - this is a @state() property so it will automatically trigger Lit to re-render
-    // Only update if value changed to avoid unnecessary re-renders
-    const oldRemaining = this._timerRemaining;
-    this._timerRemaining = remaining > 0 ? remaining : 0;
-    
-    // Only request update if value actually changed
-    if (oldRemaining !== this._timerRemaining) {
-      this.requestUpdate();
+    // Just decrement the remaining time for smooth counting
+    // Only recalculate from expiration time if we don't have a valid remaining time
+    if (this._timerRemaining == null || this._timerRemaining <= 0) {
+      // Recalculate from expiration time as fallback
+      if (this._timerExpirationTime) {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
+        this._timerRemaining = remaining > 0 ? remaining : 0;
+      } else {
+        this.clearTimer();
+        return;
+      }
+    } else {
+      // Smooth countdown - just decrement by 1
+      this._timerRemaining = Math.max(0, this._timerRemaining - 1);
     }
+    
+    // Force update to show the new countdown value
+    this.requestUpdate();
 
-    if (remaining <= 0) {
+    if (this._timerRemaining <= 0) {
       // Timer expired
       this.turnOffLight();
       this.clearTimer();

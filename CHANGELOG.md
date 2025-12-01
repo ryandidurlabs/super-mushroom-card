@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.0.25 (2024-12-01)
+
+### Improved
+- **Smooth countdown timer** - Timer now counts down smoothly without skipping
+  - Timer calculates remaining time ONCE when page loads or timer starts
+  - After that, it just decrements by 1 each second for smooth counting
+  - No more recalculating from expiration time every second (which caused skipping)
+  - Much smoother visual countdown experience
+
+### Technical Details
+- `updateTimer()` now just decrements `_timerRemaining` by 1 each second
+- Only recalculates from expiration time if `_timerRemaining` is null or invalid
+- Initial calculation happens in `calculateRemainingTime()` when timer starts or page loads
+- This ensures smooth, predictable countdown without jumps
+
 ## Version 1.0.24 (2024-12-01)
 
 ### Fixed
