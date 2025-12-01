@@ -17,6 +17,9 @@ export const LIGHT_LABELS = [
   "use_light_color",
   "show_color_temp_control",
   "show_color_control",
+  "timer_enabled",
+  "timer_duration",
+  "default_brightness",
 ];
 
 const SCHEMA: HaFormSchema[] = [
@@ -44,6 +47,21 @@ const SCHEMA: HaFormSchema[] = [
       { name: "show_color_temp_control", selector: { boolean: {} } },
       { name: "show_color_control", selector: { boolean: {} } },
       { name: "collapsible_controls", selector: { boolean: {} } },
+    ],
+  },
+  {
+    type: "grid",
+    name: "",
+    schema: [
+      { name: "timer_enabled", selector: { boolean: {} } },
+      {
+        name: "timer_duration",
+        selector: { number: { min: 60, max: 3600, step: 60, unit_of_measurement: "seconds" } },
+      },
+      {
+        name: "default_brightness",
+        selector: { number: { min: 0, max: 100, step: 1, unit_of_measurement: "%" } },
+      },
     ],
   },
   ...computeActionsFormSchema(),

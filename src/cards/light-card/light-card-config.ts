@@ -1,4 +1,4 @@
-import { assign, boolean, object, optional, string } from "superstruct";
+import { assign, boolean, number, object, optional, string } from "superstruct";
 import { LovelaceCardConfig } from "../../ha";
 import {
   ActionsSharedConfig,
@@ -24,6 +24,10 @@ export type LightCardConfig = LovelaceCardConfig &
     show_color_control?: boolean;
     collapsible_controls?: boolean;
     use_light_color?: boolean;
+    // Timer functionality
+    timer_enabled?: boolean;
+    timer_duration?: number; // in seconds
+    default_brightness?: number; // 0-100, optional
   };
 
 export const lightCardConfigStruct = assign(
@@ -40,5 +44,8 @@ export const lightCardConfigStruct = assign(
     show_color_control: optional(boolean()),
     collapsible_controls: optional(boolean()),
     use_light_color: optional(boolean()),
+    timer_enabled: optional(boolean()),
+    timer_duration: optional(number()),
+    default_brightness: optional(number()),
   })
 );
