@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.0.5 (2024-12-01)
+
+### Fixed
+- Fixed default brightness causing light to turn on/off repeatedly - now only applies once when light transitions from off to on
+- Added flag to track when default brightness has been applied to prevent loops
+
 ## Version 1.0.4 (2024-12-01)
 
 ### Added
