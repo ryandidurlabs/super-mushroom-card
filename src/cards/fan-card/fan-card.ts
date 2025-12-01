@@ -498,22 +498,24 @@ export class FanCard
     }
 
     setTimeout(() => {
+      if (!this._config?.entity) {
+        return;
+      }
+      
       const entityState = this._stateObj || (this.hass?.states?.[this._config.entity]);
       if (!entityState || !isActive(entityState)) {
         return;
       }
 
-      const duration = (this._config?.timer_duration || 300);
+      const duration = (this._config.timer_duration || 300);
       const startTime = entityState.last_changed 
         ? new Date(entityState.last_changed).getTime() 
         : Date.now();
       const expirationTime = startTime + (duration * 1000);
       
-      if (this._config.entity) {
-        const timerKey = `timer_expiration_${this._config.entity}`;
-        localStorage.setItem(timerKey, expirationTime.toString());
-        localStorage.setItem(`timer_start_${this._config.entity}`, startTime.toString());
-      }
+      const timerKey = `timer_expiration_${this._config.entity}`;
+      localStorage.setItem(timerKey, expirationTime.toString());
+      localStorage.setItem(`timer_start_${this._config.entity}`, startTime.toString());
 
       this._timerExpirationTime = expirationTime;
       this.calculateRemainingTime();
