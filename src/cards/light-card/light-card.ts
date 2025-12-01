@@ -449,9 +449,6 @@ export class LightCard
     // Reset default brightness flag when light is turned off
     this._defaultBrightnessApplied = false;
   }
-      entity_id: this._config.entity,
-    });
-  }
 
   private formatTime(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
