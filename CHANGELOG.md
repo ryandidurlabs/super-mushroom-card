@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 1.0.15 (2024-12-01)
+
+### Changed
+- **Settings Modal** - Simplified to only show enable/disable toggles
+  - Removed motion sensor entity picker from modal (configure in full editor)
+  - Timer duration input remains when timer is enabled
+  - Motion sensor selection should be done via the full card editor
+
+### Fixed
+- Added extensive console logging for timer debugging
+- Increased timer start delay to ensure state is properly updated
+
+**Note**: Check browser console (F12) for timer debugging information to help diagnose countdown display issues.
+
 ## Version 1.0.14 (2024-12-01)
 
 ### Added
