@@ -710,7 +710,10 @@ export class LightCard
     const appearance = computeAppearance(this._config);
     const picture = computeEntityPicture(stateObj, appearance.icon_type);
 
+    // Get the base state display
     let stateDisplay = this.hass.formatEntityState(stateObj);
+    
+    // If brightness is available, use brightness percentage instead
     if (this.brightness != null) {
       const brightness = this.hass.formatEntityAttributeValue(
         stateObj,
@@ -721,28 +724,16 @@ export class LightCard
     }
     
     // Always add timer countdown next to state/brightness if timer is enabled and active
-    const shouldShowTimer = 
+    // This MUST be added to stateDisplay before passing to renderStateInfo
+    if (
       this._config?.timer_enabled &&
       isActive(stateObj) &&
       this._timerRemaining != null &&
-      this._timerRemaining >= 0;
-    
-    console.log("Super Mushroom Light Card: Render timer check", {
-      timer_enabled: this._config?.timer_enabled,
-      isActive: isActive(stateObj),
-      timerRemaining: this._timerRemaining,
-      shouldShowTimer,
-      stateDisplay: stateDisplay
-    });
-    
-    if (shouldShowTimer) {
-      const timeStr = this.formatTime(this._timerRemaining!);
+      this._timerRemaining >= 0
+    ) {
+      const timeStr = this.formatTime(this._timerRemaining);
+      // Add timer directly to the stateDisplay string
       stateDisplay = `${stateDisplay} • ${timeStr}`;
-      console.log("Super Mushroom Light Card: Adding timer to display", {
-        originalStateDisplay: stateDisplay.replace(` • ${timeStr}`, ""),
-        timeStr,
-        finalStateDisplay: stateDisplay
-      });
     }
 
     const rtl = computeRTL(this.hass);
