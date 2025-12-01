@@ -98,6 +98,8 @@ export class LightCard
 
   @state() private _timerRemaining?: number; // seconds remaining
 
+  @state() private _showSettingsModal = false;
+
   private _timerInterval?: number;
 
   private _timerExpirationTime?: number; // timestamp when timer expires
@@ -696,36 +698,17 @@ export class LightCard
         this.brightness
       );
       stateDisplay = brightness;
-      
-      // Add timer countdown next to brightness percentage if timer is enabled and active
-      if (
-        this._config?.timer_enabled &&
-        isActive(stateObj) &&
-        this._timerRemaining != null &&
-        this._timerRemaining >= 0
-      ) {
-        const timeStr = this.formatTime(this._timerRemaining);
-        stateDisplay = `${stateDisplay} • ${timeStr}`;
-        console.log("Super Mushroom Light Card: Adding timer to brightness display", {
-          brightness: stateDisplay,
-          timerRemaining: this._timerRemaining,
-          timeStr
-        });
-      }
-    } else if (
+    }
+    
+    // Always add timer countdown next to state/brightness if timer is enabled and active
+    if (
       this._config?.timer_enabled &&
       isActive(stateObj) &&
       this._timerRemaining != null &&
       this._timerRemaining >= 0
     ) {
-      // Add timer even if no brightness
       const timeStr = this.formatTime(this._timerRemaining);
       stateDisplay = `${stateDisplay} • ${timeStr}`;
-      console.log("Super Mushroom Light Card: Adding timer to state display", {
-        stateDisplay,
-        timerRemaining: this._timerRemaining,
-        timeStr
-      });
     }
 
     const rtl = computeRTL(this.hass);
@@ -739,7 +722,7 @@ export class LightCard
         class=${classMap({ "fill-container": appearance.fill_container })}
       >
         <mushroom-card .appearance=${appearance} ?rtl=${rtl}>
-          ${this.renderSettingsIcon()}
+          ${appearance.layout !== "horizontal" ? this.renderSettingsIcon() : nothing}
           <mushroom-state-item
             ?rtl=${rtl}
             .appearance=${appearance}
@@ -762,10 +745,12 @@ export class LightCard
                 <div class="actions" ?rtl=${rtl}>
                   ${this.renderActiveControl(stateObj)}
                   ${this.renderOtherControls()}
+                  ${appearance.layout === "horizontal" ? this.renderSettingsIcon() : nothing}
                 </div>
               `
             : nothing}
         </mushroom-card>
+        ${this.renderSettingsModal()}
       </ha-card>
     `;
     } catch (error) {
@@ -836,13 +821,156 @@ export class LightCard
 
   private _openSettings(e: Event): void {
     e.stopPropagation();
-    // Open the card editor
-    const event = new CustomEvent("hass-edit-card", {
+    e.preventDefault();
+    this._showSettingsModal = true;
+    this.requestUpdate();
+  }
+
+  private _closeSettingsModal(): void {
+    this._showSettingsModal = false;
+    this.requestUpdate();
+  }
+
+  private _handleTimerToggle(e: Event): void {
+    const target = e.target as any;
+    const enabled = target.checked;
+    if (this._config) {
+      const newConfig = {
+        ...this._config,
+        timer_enabled: enabled,
+      };
+      this._updateConfig(newConfig);
+    }
+  }
+
+  private _handleMotionToggle(e: Event): void {
+    const target = e.target as any;
+    const enabled = target.checked;
+    if (this._config) {
+      const newConfig = {
+        ...this._config,
+        motion_enabled: enabled,
+      };
+      this._updateConfig(newConfig);
+    }
+  }
+
+  private _handleTimerDurationChange(e: Event): void {
+    const target = e.target as any;
+    const duration = parseInt(target.value, 10);
+    if (this._config && !isNaN(duration) && duration > 0) {
+      const newConfig = {
+        ...this._config,
+        timer_duration: duration,
+      };
+      this._updateConfig(newConfig);
+    }
+  }
+
+
+  private _updateConfig(newConfig: LightCardConfig): void {
+    this.setConfig(newConfig);
+    // Fire config-changed event to sync with UI editor
+    const event = new CustomEvent("config-changed", {
       bubbles: true,
       composed: true,
-      detail: { config: this._config },
+      detail: { config: newConfig },
     });
     this.dispatchEvent(event);
+    this.requestUpdate();
+  }
+
+  protected renderSettingsModal(): TemplateResult | typeof nothing {
+    if (!this._showSettingsModal || !this._config || !this.hass) {
+      return nothing;
+    }
+
+    return html`
+      <div class="settings-modal-overlay" @click=${this._closeSettingsModal}>
+        <div class="settings-modal" @click=${(e: Event) => e.stopPropagation()}>
+          <div class="settings-modal-header">
+            <div class="settings-modal-title">Settings</div>
+            <ha-icon-button
+              .icon=${"mdi:close"}
+              @click=${this._closeSettingsModal}
+              class="settings-modal-close"
+            ></ha-icon-button>
+          </div>
+          <div class="settings-modal-content">
+            <div class="settings-section">
+              <div class="settings-row">
+                <div class="settings-label-group">
+                  <div class="settings-label">Enable Timer</div>
+                  <div class="settings-description">
+                    Automatically turn off after duration
+                  </div>
+                </div>
+                <ha-switch
+                  .checked=${this._config.timer_enabled || false}
+                  @change=${this._handleTimerToggle}
+                ></ha-switch>
+              </div>
+              ${this._config.timer_enabled
+                ? html`
+                    <div class="settings-row">
+                      <div class="settings-label">Timer Duration (seconds)</div>
+                      <ha-textfield
+                        .value=${String(this._config.timer_duration || 300)}
+                        type="number"
+                        min="1"
+                        max="3000"
+                        @change=${this._handleTimerDurationChange}
+                        class="settings-input"
+                      ></ha-textfield>
+                    </div>
+                  `
+                : nothing}
+            </div>
+            <div class="settings-section">
+              <div class="settings-row">
+                <div class="settings-label-group">
+                  <div class="settings-label">Enable Motion Sensor</div>
+                  <div class="settings-description">
+                    Automatically control based on motion
+                  </div>
+                </div>
+                <ha-switch
+                  .checked=${this._config.motion_enabled || false}
+                  @change=${this._handleMotionToggle}
+                ></ha-switch>
+              </div>
+              ${this._config.motion_enabled
+                ? html`
+                    <div class="settings-row">
+                      <div class="settings-label">Motion Sensor</div>
+                      <ha-entity-picker
+                        .hass=${this.hass}
+                        .value=${this._config.motion_sensor || ""}
+                        @value-changed=${(e: CustomEvent) => {
+                          const target = e.target as any;
+                          if (this._config) {
+                            const newConfig = {
+                              ...this._config,
+                              motion_sensor: target.value || undefined,
+                            };
+                            this._updateConfig(newConfig);
+                          }
+                        }}
+                        .includeDomains=${["binary_sensor"]}
+                        .entityFilter=${(entity: any) =>
+                          entity.attributes.device_class === "motion" ||
+                          entity.entity_id.includes("motion")}
+                        allow-custom-entity
+                        class="settings-select"
+                      ></ha-entity-picker>
+                    </div>
+                  `
+                : nothing}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   protected renderIcon(stateObj: LightEntity, icon?: string): TemplateResult {
@@ -980,15 +1108,23 @@ export class LightCard
           align-items: center;
           justify-content: center;
         }
+        .actions .settings-icon-container {
+          position: relative;
+          top: auto;
+          right: auto;
+          left: auto;
+          margin-left: 8px;
+          flex-shrink: 0;
+        }
         .settings-icon {
-          --mdc-icon-size: 20px;
+          --mdc-icon-size: 16px;
           color: var(--secondary-text-color);
           opacity: 0.7;
           pointer-events: auto;
           display: block !important;
           visibility: visible !important;
-          width: 20px;
-          height: 20px;
+          width: 16px;
+          height: 16px;
         }
         .settings-icon:hover {
           opacity: 1 !important;
@@ -1009,6 +1145,88 @@ export class LightCard
         mushroom-state-item[rtl] .icon ::slotted(.motion-badge-wrapper) {
           right: auto !important;
           left: -3px !important;
+        }
+        /* Settings Modal Styles */
+        .settings-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .settings-modal {
+          background-color: var(--card-background-color, #fff);
+          border-radius: var(--mdc-shape-medium, 4px);
+          box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14),
+            0 3px 14px 2px rgba(0, 0, 0, 0.12),
+            0 5px 5px -3px rgba(0, 0, 0, 0.2);
+          max-width: 500px;
+          width: 90%;
+          max-height: 90vh;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+        }
+        .settings-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 24px;
+          border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+        }
+        .settings-modal-title {
+          font-size: 20px;
+          font-weight: 500;
+          color: var(--primary-text-color);
+        }
+        .settings-modal-close {
+          color: var(--secondary-text-color);
+        }
+        .settings-modal-content {
+          padding: 24px;
+          flex: 1;
+        }
+        .settings-section {
+          margin-bottom: 24px;
+        }
+        .settings-section:last-child {
+          margin-bottom: 0;
+        }
+        .settings-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 16px;
+          gap: 16px;
+        }
+        .settings-row:last-child {
+          margin-bottom: 0;
+        }
+        .settings-label-group {
+          flex: 1;
+        }
+        .settings-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--primary-text-color);
+          margin-bottom: 4px;
+        }
+        .settings-description {
+          font-size: 12px;
+          color: var(--secondary-text-color);
+        }
+        .settings-input {
+          width: 150px;
+          flex-shrink: 0;
+        }
+        .settings-select {
+          width: 200px;
+          flex-shrink: 0;
         }
       `,
     ];
