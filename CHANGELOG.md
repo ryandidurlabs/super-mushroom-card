@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.0.11 (2024-12-01)
+
+### Changed
+- **Motion icon positioning** - Moved from bottom-right to top-left of icon for better visual appearance
+- **Settings gear icon** - Now positioned in upper right of button and made visible
+  - Moved settings icon inside mushroom-state-item for proper positioning
+  - Increased z-index and added visibility rules to ensure it displays correctly
+
 ## Version 1.0.10 (2024-12-01)
 
 ### Fixed
