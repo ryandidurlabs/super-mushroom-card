@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 1.0.24 (2024-12-01)
+
+### Fixed
+- **Timer persistence - using entity.last_changed** - Timer now uses same logic as timer-motion-card.js
+  - Changed from using `Date.now()` to using `entity.last_changed` as timer start reference
+  - This ensures timer persists correctly across page reloads
+  - Added `calculateRemainingTime()` method that matches timer-motion-card.js logic
+  - Timer now calculates remaining time from stored expiration OR from entity.last_changed if no storage exists
+  - This is the proven working approach from timer-motion-card.js
+
+### Technical Details
+- `startTimer()` now uses `entity.last_changed` instead of `Date.now()` for start time
+- `calculateRemainingTime()` checks localStorage first, then falls back to calculating from `entity.last_changed`
+- `initializeTimer()` now calls `calculateRemainingTime()` like timer-motion-card.js does
+- Timer restoration logic now matches the working implementation
+
 ## Version 1.0.23 (2024-12-01)
 
 ### Fixed

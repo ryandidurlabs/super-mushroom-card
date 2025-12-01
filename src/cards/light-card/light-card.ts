@@ -496,61 +496,89 @@ export class LightCard
       return;
     }
 
-    // Always check localStorage first for existing timer - this works even if _stateObj isn't ready yet
-    const timerKey = `timer_expiration_${this._config.entity}`;
-    const storedExpiration = localStorage.getItem(timerKey);
-    
     // Get entity state directly from hass if _stateObj isn't available yet
     const entityState = this._stateObj || (this.hass?.states?.[this._config.entity]);
-    const isLightOn = entityState ? isActive(entityState) : false;
+    if (!entityState) {
+      return; // Can't initialize without entity state
+    }
+
+    const isLightOn = isActive(entityState);
     
-    // If we have a stored timer, check if it's still valid
-    if (storedExpiration) {
-      const expirationTime = parseInt(storedExpiration, 10);
+    // Check for existing timer when page loads - same logic as timer-motion-card.js
+    if (isLightOn) {
+      // Calculate remaining time from stored expiration or entity.last_changed
+      this.calculateRemainingTime();
       
-      if (isNaN(expirationTime)) {
-        // Invalid stored value - clear it
-        localStorage.removeItem(timerKey);
-        localStorage.removeItem(`${timerKey}_start`);
-        return;
-      }
-      
-      // Calculate remaining time based on expiration time (works even after page reload)
-      const now = Date.now();
-      const calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
-      
-      if (calculatedRemaining > 0 && isLightOn) {
-        // Restore timer from localStorage - this continues counting from where it left off
-        this._timerExpirationTime = expirationTime;
-        this._timerRemaining = calculatedRemaining;
-        
-        // Clear any existing interval before starting a new one
-        if (this._timerInterval) {
-          clearInterval(this._timerInterval);
-          this._timerInterval = undefined;
+      if (this._timerRemaining != null && this._timerRemaining > 0) {
+        // Timer is still active - start the interval if not already running
+        if (!this._timerInterval) {
+          this.startTimerInterval();
         }
-        
-        // Start the interval to continue counting
-        this.startTimerInterval();
-        return; // Don't start a new timer - we restored the existing one
-      } else if (calculatedRemaining <= 0 && isLightOn) {
-        // Timer expired while page was away - turn off light and clear
+      } else if (this._timerRemaining != null && this._timerRemaining <= 0) {
+        // Timer expired while page was closed - turn off light
         this.turnOffLight();
         this.clearTimer();
-        return;
-      } else if (!isLightOn) {
-        // Light is off - clear stored timer
-        this.clearTimer();
-        return;
+      } else if (this._timerRemaining == null) {
+        // No timer running - start one
+        this.startTimer();
       }
+    } else {
+      // Light is off - clear any timer data
+      this.clearTimer();
+    }
+  }
+
+  private calculateRemainingTime(): void {
+    if (!this._config?.timer_enabled || !this._config.entity || !this.hass) {
+      this._timerRemaining = 0;
+      return;
     }
     
-    // No stored timer - if light is on and timer is enabled, start a new one
-    if (isLightOn && !this._timerRemaining && !this._timerInterval) {
-      this.startTimer();
-    } else if (!isLightOn) {
-      // Light is off - clear any stored timer
-      this.clearTimer();
+    try {
+      const timerKey = `timer_expiration_${this._config.entity}`;
+      const expirationTimeStr = localStorage.getItem(timerKey);
+      
+      if (expirationTimeStr) {
+        // We have a stored expiration time - calculate remaining
+        const expirationTime = parseInt(expirationTimeStr, 10);
+        if (!isNaN(expirationTime)) {
+          const now = Date.now();
+          const remaining = Math.max(0, Math.floor((expirationTime - now) / 1000));
+          this._timerRemaining = remaining;
+          this._timerExpirationTime = expirationTime;
+        } else {
+          this._timerRemaining = 0;
+        }
+      } else {
+        // No stored timer - check if entity was just turned on
+        const entityState = this._stateObj || (this.hass.states?.[this._config.entity]);
+        if (entityState && isActive(entityState) && entityState.last_changed) {
+          const startTime = new Date(entityState.last_changed).getTime();
+          const duration = this._config.timer_duration || 300;
+          const expirationTime = startTime + (duration * 1000);
+          const now = Date.now();
+          
+          if (now < expirationTime) {
+            // Timer should be running - calculate remaining and store it
+            const remaining = Math.floor((expirationTime - now) / 1000);
+            this._timerRemaining = remaining;
+            this._timerExpirationTime = expirationTime;
+            // Store it for future reference
+            localStorage.setItem(timerKey, expirationTime.toString());
+            localStorage.setItem(`timer_start_${this._config.entity}`, startTime.toString());
+          } else {
+            // Timer should have expired
+            this._timerRemaining = 0;
+            localStorage.removeItem(timerKey);
+            localStorage.removeItem(`timer_start_${this._config.entity}`);
+          }
+        } else {
+          this._timerRemaining = 0;
+        }
+      }
+    } catch (error) {
+      console.warn("Super Mushroom Light Card: Error calculating remaining time", error);
+      this._timerRemaining = 0;
     }
   }
 
@@ -612,25 +640,36 @@ export class LightCard
   }
 
   private startTimer(): void {
-    if (!this._config?.timer_enabled || !this._config.entity || !this._stateObj) {
+    if (!this._config?.timer_enabled || !this._config.entity) {
       return;
     }
 
     // Wait a bit for state to update after toggle
     setTimeout(() => {
-      if (!this._stateObj || !isActive(this._stateObj)) {
+      // Get entity state directly from hass if _stateObj isn't available yet
+      const entityState = this._stateObj || (this.hass?.states?.[this._config.entity]);
+      if (!entityState || !isActive(entityState)) {
         return;
       }
 
       const duration = (this._config?.timer_duration || 300); // default 5 minutes
-      const expirationTime = Date.now() + duration * 1000;
       
-      // Store expiration time in localStorage for persistence across page reloads
-      const timerKey = `timer_expiration_${this._config?.entity || ""}`;
+      // Store timer start time using entity's last_changed as reference
+      // This way it persists across page reloads - key difference from using Date.now()
+      const startTime = entityState.last_changed 
+        ? new Date(entityState.last_changed).getTime() 
+        : Date.now();
+      const expirationTime = startTime + (duration * 1000);
+      
+      // Store expiration and start time in localStorage for persistence
+      const timerKey = `timer_expiration_${this._config.entity}`;
       localStorage.setItem(timerKey, expirationTime.toString());
+      localStorage.setItem(`timer_start_${this._config.entity}`, startTime.toString());
 
       this._timerExpirationTime = expirationTime;
-      this._timerRemaining = duration;
+      
+      // Calculate initial remaining time
+      this.calculateRemainingTime();
       
       // Clear any existing interval before starting a new one
       if (this._timerInterval) {
@@ -639,7 +678,6 @@ export class LightCard
       }
       
       this.startTimerInterval();
-      // Don't call requestUpdate() - Lit's @state() will handle it
     }, 200);
   }
 
