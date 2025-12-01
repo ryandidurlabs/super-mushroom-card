@@ -186,11 +186,12 @@ export class LightCard
     // Unsubscribe from previous subscription if any
     if (this._stateUnsub) {
       this._stateUnsub();
+      this._stateUnsub = undefined;
     }
 
     try {
-      this._stateUnsub = this.hass.connection.subscribeEvents(
-        (ev) => {
+      this.hass.connection.subscribeEvents(
+        (ev: any) => {
           if (ev.data?.entity_id === this._config?.entity) {
             const newState = ev.data.new_state;
             const oldState = ev.data.old_state;
@@ -220,7 +221,11 @@ export class LightCard
           }
         },
         "state_changed"
-      );
+      ).then((unsub) => {
+        this._stateUnsub = unsub;
+      }).catch((e) => {
+        console.warn("Timer Motion Card: Error subscribing to state changes", e);
+      });
     } catch (e) {
       console.warn("Timer Motion Card: Error subscribing to state changes", e);
     }
