@@ -207,15 +207,19 @@ export class LightCard
             }
             
             // Apply default brightness when light turns on (only if enabled and just turned on)
+            // Only apply if state changed from off to on (not just brightness change)
             if (
               newState?.state === "on" &&
               oldState?.state !== "on" &&
+              !this._defaultBrightnessApplied &&
               this._config?.default_brightness_enabled &&
               this._config?.default_brightness != null &&
               this._config?.default_brightness >= 0 &&
               this._config?.default_brightness <= 100
             ) {
               if (supportsBrightnessControl(newState)) {
+                // Mark as applied immediately to prevent loops
+                this._defaultBrightnessApplied = true;
                 // Small delay to ensure state is updated
                 setTimeout(() => {
                   this.hass!.callService("light", "turn_on", {
@@ -226,13 +230,15 @@ export class LightCard
               }
             }
             
-            // If light just turned off, clear timer
+            // If light just turned off, clear timer and reset default brightness flag
             if (
               newState?.state === "off" &&
-              oldState?.state === "on" &&
-              this._config?.timer_enabled
+              oldState?.state === "on"
             ) {
-              this.clearTimer();
+              if (this._config?.timer_enabled) {
+                this.clearTimer();
+              }
+              this._defaultBrightnessApplied = false;
             }
             
             // Update brightness and timer display
@@ -286,9 +292,12 @@ export class LightCard
           setTimeout(() => this.startTimer(), 100);
           return;
         }
-        // If turning off, clear timer
-        if (isActive(this._stateObj) && this._config?.timer_enabled) {
-          this.clearTimer();
+        // If turning off, clear timer and reset default brightness flag
+        if (isActive(this._stateObj)) {
+          if (this._config?.timer_enabled) {
+            this.clearTimer();
+          }
+          this._defaultBrightnessApplied = false;
         }
       }
     }
@@ -422,12 +431,21 @@ export class LightCard
     }
     this._timerRemaining = undefined;
     this._timerExpirationTime = undefined;
-    
+
     if (this._config?.entity) {
       const timerKey = `timer_expiration_${this._config.entity}`;
       localStorage.removeItem(timerKey);
       localStorage.removeItem(`${timerKey}_start`);
     }
+  }
+  
+  private turnOffLight(): void {
+    if (!this._config?.entity) return;
+    this.hass!.callService("light", "turn_off", {
+      entity_id: this._config.entity,
+    });
+    // Reset default brightness flag when light is turned off
+    this._defaultBrightnessApplied = false;
   }
 
   private turnOffLight(): void {
