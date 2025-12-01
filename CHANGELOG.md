@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.0.3 (2024-12-01)
+
+### Fixed
+- Fixed gear icon settings functionality - added preventDefault and improved pointer events
+- Added proper translations for timer options in UI editor:
+  - "Enable timer" for timer_enabled
+  - "Timer duration (seconds)" for timer_duration
+  - "Default brightness (%)" for default_brightness
+- Improved settings icon z-index and pointer events for better clickability
+
 ## Version 1.0.2 (2024-12-01)
 
 ### Fixed
