@@ -103,6 +103,7 @@ export class LightCard
   private _timerExpirationTime?: number; // timestamp when timer expires
 
   private _stateUnsub?: () => void;
+  private _defaultBrightnessApplied?: boolean; // Track if default brightness was applied for current "on" state
 
   private get _controls(): LightCardControl[] {
     if (!this._config || !this._stateObj) return [];
@@ -440,18 +441,14 @@ export class LightCard
   }
   
   private turnOffLight(): void {
-    if (!this._config?.entity) return;
-    this.hass!.callService("light", "turn_off", {
+    if (!this.hass || !this._config?.entity) return;
+    
+    this.hass.callService("light", "turn_off", {
       entity_id: this._config.entity,
     });
     // Reset default brightness flag when light is turned off
     this._defaultBrightnessApplied = false;
   }
-
-  private turnOffLight(): void {
-    if (!this.hass || !this._config?.entity) return;
-    
-    this.hass.callService("light", "turn_off", {
       entity_id: this._config.entity,
     });
   }
