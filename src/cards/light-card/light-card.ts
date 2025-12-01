@@ -194,16 +194,22 @@ export class LightCard
       if (this.hass && changedProperties.has("hass")) {
         this.updateActiveControl();
         this.updateBrightness();
+        this.initializeTimer();
         this.checkTimerState();
         this.subscribeToStateChanges();
         this.subscribeToMotionSensor();
       }
       if (changedProperties.has("_config")) {
         this.initializeTimer();
+        this.checkTimerState();
         if (this.hass) {
           this.subscribeToStateChanges();
           this.subscribeToMotionSensor();
         }
+      }
+      // Force update if timer is running to ensure display updates
+      if (this._timerRemaining != null && this._timerRemaining > 0) {
+        this.requestUpdate();
       }
     } catch (error) {
       console.warn("Super Mushroom Light Card: Error in updated lifecycle", error);
@@ -213,8 +219,9 @@ export class LightCard
   connectedCallback() {
     super.connectedCallback();
     try {
-      this.initializeTimer();
       if (this.hass) {
+        this.initializeTimer();
+        this.checkTimerState();
         this.subscribeToStateChanges();
         this.subscribeToMotionSensor();
       }
@@ -620,8 +627,9 @@ export class LightCard
   }
 
   private formatTime(seconds: number): string {
+    if (seconds < 0) seconds = 0;
     const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
   }
 
@@ -663,7 +671,7 @@ export class LightCard
         this._config?.timer_enabled &&
         isActive(stateObj) &&
         this._timerRemaining != null &&
-        this._timerRemaining > 0
+        this._timerRemaining >= 0
       ) {
         const timeStr = this.formatTime(this._timerRemaining);
         stateDisplay = `${stateDisplay} • ${timeStr}`;
@@ -672,10 +680,11 @@ export class LightCard
       this._config?.timer_enabled &&
       isActive(stateObj) &&
       this._timerRemaining != null &&
-      this._timerRemaining > 0
+      this._timerRemaining >= 0
     ) {
       // Add timer even if no brightness
-      stateDisplay = `${stateDisplay} • ${this.formatTime(this._timerRemaining)}`;
+      const timeStr = this.formatTime(this._timerRemaining);
+      stateDisplay = `${stateDisplay} • ${timeStr}`;
     }
 
     const rtl = computeRTL(this.hass);
@@ -689,6 +698,7 @@ export class LightCard
         class=${classMap({ "fill-container": appearance.fill_container })}
       >
         <mushroom-card .appearance=${appearance} ?rtl=${rtl}>
+          ${this.renderSettingsIcon()}
           <mushroom-state-item
             ?rtl=${rtl}
             .appearance=${appearance}
@@ -698,7 +708,6 @@ export class LightCard
               hasDoubleClick: hasAction(this._config.double_tap_action),
             })}
           >
-            ${this.renderSettingsIcon()}
             ${picture
               ? this.renderPicture(picture)
               : this.renderIcon(stateObj, icon)}
@@ -904,7 +913,6 @@ export class LightCard
       css`
         mushroom-state-item {
           cursor: pointer;
-          position: relative;
         }
         mushroom-shape-icon {
           --icon-color: rgb(var(--rgb-state-light));
@@ -926,9 +934,11 @@ export class LightCard
           z-index: 1000;
           cursor: pointer;
           pointer-events: auto;
-          display: block !important;
+          display: flex !important;
           visibility: visible !important;
           opacity: 1 !important;
+          align-items: center;
+          justify-content: center;
         }
         .settings-icon {
           --mdc-icon-button-size: 32px;
