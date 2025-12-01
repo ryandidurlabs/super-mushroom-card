@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.0.18 (2024-12-01)
+
+### Fixed
+- **Timer countdown not updating** - Timer now properly counts down every second
+  - Simplified timer update logic to always update display
+  - Added check to ensure light is still on before updating timer
+  - Timer display now refreshes every second as expected
+- **Duplicate custom element registration errors** - Fixed all picker components
+  - Fixed mushroom-alignment-picker
+  - Fixed mushroom-layout-picker
+  - Fixed mushroom-info-picker
+  - Fixed mushroom-icon-type-picker
+  - Fixed mushroom-color-picker
+  - All pickers now use manual registration with guards to prevent duplicate registration
+
 ## Version 1.0.17 (2024-12-01)
 
 ### Fixed
