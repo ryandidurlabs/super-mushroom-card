@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.0.2 (2024-12-01)
+
+### Fixed
+- Updated release asset with correct built file containing proper element registration
+- Ensured mushroom.js file in repository matches the latest build
+
 ## Version 1.0.1 (2024-11-30)
 
 ### Fixed
