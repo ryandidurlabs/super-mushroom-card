@@ -453,15 +453,23 @@ export class LightCard
         this.brightness
       );
       stateDisplay = brightness;
-    }
-    
-    // Add timer countdown if timer is enabled and active (always show when timer is running)
-    if (
+      
+      // Add timer countdown next to brightness percentage if timer is enabled and active
+      if (
+        this._config?.timer_enabled &&
+        isActive(stateObj) &&
+        this._timerRemaining != null &&
+        this._timerRemaining > 0
+      ) {
+        stateDisplay = `${stateDisplay} • ${this.formatTime(this._timerRemaining)}`;
+      }
+    } else if (
       this._config?.timer_enabled &&
       isActive(stateObj) &&
       this._timerRemaining != null &&
       this._timerRemaining > 0
     ) {
+      // Add timer even if no brightness
       stateDisplay = `${stateDisplay} • ${this.formatTime(this._timerRemaining)}`;
     }
 
