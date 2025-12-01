@@ -57,7 +57,7 @@ export const TEMPLATE_CARD_HELPERS = [
   "multiline_secondary",
 ];
 
-@customElement("mushroom-template-card-editor")
+@customElement("super-mushroom-template-card-editor")
 export class MushroomTemplateCardEditor
   extends LitElement
   implements LovelaceCardEditor
@@ -507,6 +507,6 @@ export class MushroomTemplateCardEditor
 
 declare global {
   interface HTMLElementTagNameMap {
-    "mushroom-template-card-editor": MushroomTemplateCardEditor;
+    "super-mushroom-template-card-editor": MushroomTemplateCardEditor;
   }
 }

@@ -42,9 +42,9 @@ export const getEntityDefaultTileIconAction = (entityId: string) => {
 };
 
 registerCustomCard({
-  type: "mushroom-template-card",
+  type: "super-mushroom-template-card",
   name: "Super Mushroom Template",
-  description: "Build your own Mushroom card using templates",
+  description: "Build your own Super Mushroom card using templates",
 });
 
 const templateCache = new CacheManager<TemplateResults>(1000);
