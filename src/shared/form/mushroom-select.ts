@@ -1,10 +1,9 @@
 import { SelectBase } from "@material/mwc-select/mwc-select-base";
 import { styles } from "@material/mwc-select/mwc-select.css";
 import { css, CSSResult, html, nothing } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 import { debounce, nextRender } from "../../ha";
 
-@customElement("mushroom-select")
 export class MushroomSelect extends SelectBase {
   // @ts-ignore
   @property({ type: Boolean }) public icon?: boolean;
@@ -47,6 +46,11 @@ export class MushroomSelect extends SelectBase {
       }
     `,
   ];
+}
+
+// Guard against duplicate registration
+if (!customElements.get("mushroom-select")) {
+  customElements.define("mushroom-select", MushroomSelect);
 }
 
 declare global {
