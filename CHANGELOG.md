@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.8 (2024-12-01)
+
+### Changed
+- Updated timer duration range from 60-3600 seconds to 1-3000 seconds for more flexibility
+
 ## Version 1.0.7 (2024-12-01)
 
 ### Added
