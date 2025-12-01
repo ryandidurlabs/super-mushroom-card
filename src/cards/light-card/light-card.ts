@@ -737,7 +737,7 @@ export class LightCard
     if (this._config?.entity) {
       const timerKey = `timer_expiration_${this._config.entity}`;
       localStorage.removeItem(timerKey);
-      localStorage.removeItem(`${timerKey}_start`);
+      localStorage.removeItem(`timer_start_${this._config.entity}`);
     }
   }
   
