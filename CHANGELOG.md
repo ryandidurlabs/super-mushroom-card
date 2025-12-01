@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 1.0.4 (2024-12-01)
+
+### Added
+- Added `default_brightness_enabled` toggle to enable/disable default brightness feature
+- Default brightness now only applies when turning light on (not when adjusting brightness)
+
+### Fixed
+- Fixed settings gear icon visibility - increased z-index and added display properties
+- Fixed countdown timer display - improved timer state checking
+- Default brightness is now only applied when light transitions from off to on state
+
 ## Version 1.0.3 (2024-12-01)
 
 ### Fixed
