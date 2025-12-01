@@ -1,5 +1,27 @@
 # Changelog
 
+## Version 1.0.19 (2024-12-01)
+
+### Fixed
+- **Critical logic error in _handleAction** - Fixed duplicate `handleAction` calls that could cause unexpected behavior
+  - Properly handles toggle actions with timer and default brightness
+  - Ensures `handleAction` is only called once per action
+- **TypeScript error in editor** - Fixed entity selector schema for motion sensor
+  - Changed from nested `filter.attributes` to proper `filter.device_class` format
+- **Null safety improvements** - Removed non-null assertions and added proper null checks
+  - Fixed `this._stateObj!` assertion in `startTimer` method
+  - Added proper null checks in timer callback
+- **Code cleanup** - Removed debug console.log statements
+  - Cleaner production code without excessive logging
+- **Timer logic improvements** - Added state validation before starting timer
+  - Ensures light is actually on before starting timer in async callbacks
+
+### Technical Improvements
+- Comprehensive code review and error checking
+- All null/undefined access properly guarded
+- Improved error handling throughout
+- Build verified with no TypeScript errors
+
 ## Version 1.0.18 (2024-12-01)
 
 ### Fixed

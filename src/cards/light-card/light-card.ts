@@ -452,24 +452,22 @@ export class LightCard
               if (this._config.timer_enabled) {
                 setTimeout(() => this.startTimer(), 200);
               }
-              return; // Don't call handleAction again
+              return; // Don't call handleAction again - we already handled it
             }
           }
           
-        // If turning on and timer is enabled, start timer
-        if (wasOff && this._config.timer_enabled) {
-          // Light will be turned on by handleAction, then we start timer
-          handleAction(this, this.hass, this._config, actionType);
-          // Wait a bit longer to ensure state has updated
-          setTimeout(() => {
-            console.log("Super Mushroom Light Card: Starting timer after toggle", {
-              stateObj: this._stateObj,
-              isActive: this._stateObj ? isActive(this._stateObj) : false
-            });
-            this.startTimer();
-          }, 300);
-          return;
-        }
+          // If turning on and timer is enabled (but no default brightness), start timer after toggle
+          if (wasOff && this._config.timer_enabled) {
+            // Light will be turned on by handleAction, then we start timer
+            handleAction(this, this.hass, this._config, actionType);
+            // Wait a bit to ensure state has updated
+            setTimeout(() => {
+              if (this._stateObj && isActive(this._stateObj)) {
+                this.startTimer();
+              }
+            }, 300);
+            return; // Don't call handleAction again - we already handled it
+          }
           
           // If turning off, clear timer and reset default brightness flag
           if (!wasOff) {
@@ -480,6 +478,7 @@ export class LightCard
           }
         }
       }
+      // Call handleAction for all other cases (non-toggle actions, or toggle without special handling)
       handleAction(this, this.hass, this._config, actionType);
     } catch (e) {
       console.warn("Super Mushroom Light Card: Error handling action", e);
@@ -493,12 +492,7 @@ export class LightCard
       return;
     }
 
-    console.log("Super Mushroom Light Card: Initializing timer", {
-      timer_enabled: this._config.timer_enabled,
-      entity: this._config.entity,
-      stateObj: !!this._stateObj,
-      isActive: this._stateObj ? isActive(this._stateObj) : false
-    });
+    // Timer initialization
 
     // Check for existing timer in localStorage
     const timerKey = `timer_expiration_${this._config.entity}`;
@@ -522,10 +516,7 @@ export class LightCard
         calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
       }
       
-      console.log("Super Mushroom Light Card: Found stored timer", {
-        expirationTime,
-        calculatedRemaining
-      });
+      // Found stored timer, restoring
       
       if (calculatedRemaining > 0) {
         this._timerExpirationTime = expirationTime;
@@ -539,7 +530,6 @@ export class LightCard
       }
     } else if (this._stateObj && isActive(this._stateObj) && !this._timerRemaining) {
       // Light is on but no timer running - start it
-      console.log("Super Mushroom Light Card: Light is on but no timer, starting timer");
       this.startTimer();
     } else {
       this._timerRemaining = undefined;
@@ -566,18 +556,12 @@ export class LightCard
 
   private startTimer(): void {
     if (!this._config?.timer_enabled || !this._config.entity || !this._stateObj) {
-      console.log("Super Mushroom Light Card: Timer not started - config check failed", {
-        timer_enabled: this._config?.timer_enabled,
-        entity: this._config?.entity,
-        stateObj: !!this._stateObj
-      });
       return;
     }
 
     // Wait a bit for state to update after toggle
     setTimeout(() => {
-      if (!isActive(this._stateObj!)) {
-        console.log("Super Mushroom Light Card: Timer not started - light is not active");
+      if (!this._stateObj || !isActive(this._stateObj)) {
         return;
       }
 
@@ -592,16 +576,8 @@ export class LightCard
 
       this._timerExpirationTime = expirationTime;
       this._timerRemaining = duration;
-      console.log("Super Mushroom Light Card: Timer started", {
-        duration,
-        remaining: this._timerRemaining,
-        expirationTime
-      });
       this.startTimerInterval();
       this.requestUpdate(); // Force re-render to show timer
-      
-      // Note: Default brightness is now handled in state subscription
-      // to only apply when turning on, not when adjusting
     }, 200);
   }
 
@@ -616,12 +592,6 @@ export class LightCard
     this._timerInterval = window.setInterval(() => {
       this.updateTimer();
     }, 1000);
-    
-    console.log("Super Mushroom Light Card: Timer interval started", {
-      intervalId: this._timerInterval,
-      expirationTime: this._timerExpirationTime,
-      currentRemaining: this._timerRemaining
-    });
   }
 
   private updateTimer(): void {

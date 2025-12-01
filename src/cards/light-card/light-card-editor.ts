@@ -79,9 +79,7 @@ const SCHEMA: HaFormSchema[] = [
           entity: { 
             domain: ["binary_sensor"],
             filter: {
-              attributes: [
-                { device_class: "motion" }
-              ]
+              device_class: "motion"
             }
           } 
         },
