@@ -1,4 +1,4 @@
-import { assign, boolean, object, optional, string } from "superstruct";
+import { assign, boolean, number, object, optional, string } from "superstruct";
 import {
   ActionsSharedConfig,
   actionsSharedConfigStruct,
@@ -19,6 +19,12 @@ export type EntityCardConfig = LovelaceCardConfig &
   AppearanceSharedConfig &
   ActionsSharedConfig & {
     icon_color?: string;
+    // Timer functionality
+    timer_enabled?: boolean;
+    timer_duration?: number; // in seconds
+    // Motion functionality
+    motion_enabled?: boolean;
+    motion_sensor?: string; // entity_id of the motion sensor
   };
 
 export const entityCardConfigStruct = assign(
@@ -30,5 +36,9 @@ export const entityCardConfigStruct = assign(
   ),
   object({
     icon_color: optional(string()),
+    timer_enabled: optional(boolean()),
+    timer_duration: optional(number()),
+    motion_enabled: optional(boolean()),
+    motion_sensor: optional(string()),
   })
 );

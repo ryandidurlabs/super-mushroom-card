@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.0.27 (2024-12-01)
+
+### Added
+- **Timer and Motion functionality for Entity Card** - Entity card (including switches) now has timer and motion features
+  - Timer functionality: Automatically turn off entity after specified duration
+  - Motion sensor support: Automatically control entity based on motion sensor
+  - Timer countdown display: Shows remaining time next to entity state
+  - Settings modal: In-card settings for timer and motion options
+  - Timer and motion icons: Visual indicators when features are enabled
+  - Smooth countdown: Timer counts down smoothly second by second
+  - Persistent timer: Timer continues counting even after page reload
+  - Works with switches, input_booleans, and other toggleable entities
+
+### Technical Details
+- Added timer and motion config options to `entity-card-config.ts`
+- Implemented all timer and motion logic in `entity-card.ts` (same as fan/light cards)
+- Added timer and motion options to `entity-card-editor.ts` for UI configuration
+- Added translations for entity card timer and motion options
+- Entity card dynamically determines service domain from entity_id (e.g., "switch" from "switch.living_room")
+
 ## Version 1.0.26 (2024-12-01)
 
 ### Added

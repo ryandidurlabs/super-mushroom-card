@@ -27,6 +27,12 @@
       "empty": {
         "no_config_options": "This card has no config options."
       },
+      "entity": {
+        "timer_enabled": "Enable timer",
+        "timer_duration": "Timer duration (seconds)",
+        "motion_enabled": "Enable motion sensor",
+        "motion_sensor": "Motion sensor entity"
+      },
       "fan": {
         "show_direction_control": "Direction control?",
         "show_oscillate_control": "Oscillate control?",
