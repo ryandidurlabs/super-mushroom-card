@@ -209,6 +209,7 @@ export class LightCard
             
             // Apply default brightness when light turns on (only if enabled and just turned on)
             // Only apply if state changed from off to on (not just brightness change)
+            // Also check that brightness is not already at target to prevent loops
             if (
               newState?.state === "on" &&
               oldState?.state !== "on" &&
@@ -219,15 +220,48 @@ export class LightCard
               this._config?.default_brightness <= 100
             ) {
               if (supportsBrightnessControl(newState)) {
-                // Mark as applied immediately to prevent loops
-                this._defaultBrightnessApplied = true;
-                // Small delay to ensure state is updated
-                setTimeout(() => {
-                  this.hass!.callService("light", "turn_on", {
-                    entity_id: this._config!.entity,
-                    brightness_pct: this._config!.default_brightness,
-                  });
-                }, 100);
+                // Check current brightness - only apply if it's significantly different
+                const currentBrightness = newState.attributes.brightness;
+                const currentBrightnessPct = currentBrightness 
+                  ? Math.round((currentBrightness / 255) * 100) 
+                  : null;
+                const targetBrightnessPct = this._config.default_brightness;
+                
+                // Only apply if brightness is not already at target (within 5% tolerance)
+                if (currentBrightnessPct == null || 
+                    Math.abs(currentBrightnessPct - targetBrightnessPct) > 5) {
+                  // Mark as applied immediately to prevent loops
+                  this._defaultBrightnessApplied = true;
+                  // Small delay to ensure state is updated
+                  setTimeout(() => {
+                    this.hass!.callService("light", "turn_on", {
+                      entity_id: this._config!.entity,
+                      brightness_pct: this._config!.default_brightness,
+                    });
+                  }, 200);
+                } else {
+                  // Already at target brightness, just mark as applied
+                  this._defaultBrightnessApplied = true;
+                }
+              }
+            }
+            
+            // Reset flag if brightness changes significantly (user adjusted it)
+            if (
+              newState?.state === "on" &&
+              oldState?.state === "on" &&
+              this._defaultBrightnessApplied &&
+              newState.attributes.brightness != null &&
+              oldState.attributes.brightness != null
+            ) {
+              const oldBrightnessPct = Math.round((oldState.attributes.brightness / 255) * 100);
+              const newBrightnessPct = Math.round((newState.attributes.brightness / 255) * 100);
+              const targetBrightnessPct = this._config?.default_brightness || 0;
+              
+              // If brightness changed significantly and is different from target, reset flag
+              if (Math.abs(newBrightnessPct - oldBrightnessPct) > 5 && 
+                  Math.abs(newBrightnessPct - targetBrightnessPct) > 5) {
+                this._defaultBrightnessApplied = false;
               }
             }
             
@@ -556,6 +590,9 @@ export class LightCard
   }
 
   protected renderSettingsIcon(): TemplateResult | typeof nothing {
+    if (!this._config) {
+      return nothing;
+    }
     return html`
       <div class="settings-icon-container" @click=${this._openSettings}>
         <ha-icon-button
