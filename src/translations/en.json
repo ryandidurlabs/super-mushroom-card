@@ -61,7 +61,9 @@
         "timer_enabled": "Enable timer",
         "timer_duration": "Timer duration (seconds)",
         "default_brightness_enabled": "Enable default brightness",
-        "default_brightness": "Default brightness (%)"
+        "default_brightness": "Default brightness (%)",
+        "motion_enabled": "Enable motion sensor",
+        "motion_sensor": "Motion sensor"
       },
       "lock": {
         "lock": "Lock",

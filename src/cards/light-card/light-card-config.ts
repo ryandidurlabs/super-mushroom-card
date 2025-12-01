@@ -29,6 +29,9 @@ export type LightCardConfig = LovelaceCardConfig &
     timer_duration?: number; // in seconds
     default_brightness_enabled?: boolean;
     default_brightness?: number; // 0-100, optional
+    // Motion functionality
+    motion_enabled?: boolean;
+    motion_sensor?: string; // entity_id of motion sensor
   };
 
 export const lightCardConfigStruct = assign(
@@ -49,5 +52,7 @@ export const lightCardConfigStruct = assign(
     timer_duration: optional(number()),
     default_brightness_enabled: optional(boolean()),
     default_brightness: optional(number()),
+    motion_enabled: optional(boolean()),
+    motion_sensor: optional(string()),
   })
 );

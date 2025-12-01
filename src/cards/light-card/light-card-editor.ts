@@ -21,6 +21,8 @@ export const LIGHT_LABELS = [
   "timer_duration",
   "default_brightness_enabled",
   "default_brightness",
+  "motion_enabled",
+  "motion_sensor",
 ];
 
 const SCHEMA: HaFormSchema[] = [
@@ -63,6 +65,26 @@ const SCHEMA: HaFormSchema[] = [
       {
         name: "default_brightness",
         selector: { number: { min: 0, max: 100, step: 1, unit_of_measurement: "%" } },
+      },
+    ],
+  },
+  {
+    type: "grid",
+    name: "",
+    schema: [
+      { name: "motion_enabled", selector: { boolean: {} } },
+      {
+        name: "motion_sensor",
+        selector: { 
+          entity: { 
+            domain: ["binary_sensor"],
+            filter: {
+              attributes: [
+                { device_class: "motion" }
+              ]
+            }
+          } 
+        },
       },
     ],
   },

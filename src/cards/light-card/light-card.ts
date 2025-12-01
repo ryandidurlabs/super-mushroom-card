@@ -103,6 +103,7 @@ export class LightCard
   private _timerExpirationTime?: number; // timestamp when timer expires
 
   private _stateUnsub?: () => void;
+  private _motionUnsub?: () => void; // For motion sensor subscription
   private _defaultBrightnessApplied?: boolean; // Track if default brightness was applied for current "on" state
 
   private get _controls(): LightCardControl[] {
@@ -159,10 +160,12 @@ export class LightCard
       this.updateBrightness();
       this.checkTimerState();
       this.subscribeToStateChanges();
+      this.subscribeToMotionSensor();
     }
     if (changedProperties.has("_config")) {
       this.initializeTimer();
       this.subscribeToStateChanges();
+      this.subscribeToMotionSensor();
     }
   }
 
@@ -170,6 +173,7 @@ export class LightCard
     super.connectedCallback();
     this.initializeTimer();
     this.subscribeToStateChanges();
+    this.subscribeToMotionSensor();
   }
 
   disconnectedCallback() {
@@ -178,6 +182,10 @@ export class LightCard
     if (this._stateUnsub) {
       this._stateUnsub();
       this._stateUnsub = undefined;
+    }
+    if (this._motionUnsub) {
+      this._motionUnsub();
+      this._motionUnsub = undefined;
     }
   }
 
@@ -234,6 +242,76 @@ export class LightCard
       });
     } catch (e) {
       console.warn("Timer Motion Card: Error subscribing to state changes", e);
+    }
+  }
+
+  private subscribeToMotionSensor(): void {
+    if (!this.hass?.connection || !this._config?.motion_enabled || !this._config?.motion_sensor) {
+      // Unsubscribe if motion is disabled
+      if (this._motionUnsub) {
+        this._motionUnsub();
+        this._motionUnsub = undefined;
+      }
+      return;
+    }
+
+    // Unsubscribe from previous subscription if any
+    if (this._motionUnsub) {
+      this._motionUnsub();
+      this._motionUnsub = undefined;
+    }
+
+    try {
+      this.hass.connection.subscribeEvents(
+        (ev: any) => {
+          if (ev.data?.entity_id === this._config?.motion_sensor) {
+            const newState = ev.data.new_state;
+            const oldState = ev.data.old_state;
+            
+            // If motion sensor turns on (motion detected), turn on the light
+            if (
+              newState?.state === "on" &&
+              oldState?.state !== "on" &&
+              this._config?.entity
+            ) {
+              // Apply default brightness if enabled
+              if (
+                this._config?.default_brightness_enabled &&
+                this._config?.default_brightness != null &&
+                this._config?.default_brightness >= 0 &&
+                this._config?.default_brightness <= 100
+              ) {
+                if (supportsBrightnessControl(this._stateObj!)) {
+                  this.hass!.callService("light", "turn_on", {
+                    entity_id: this._config.entity,
+                    brightness_pct: this._config.default_brightness,
+                  });
+                } else {
+                  this.hass!.callService("light", "turn_on", {
+                    entity_id: this._config.entity,
+                  });
+                }
+              } else {
+                this.hass!.callService("light", "turn_on", {
+                  entity_id: this._config.entity,
+                });
+              }
+              
+              // Start timer if enabled
+              if (this._config?.timer_enabled && !this._timerRemaining) {
+                setTimeout(() => this.startTimer(), 200);
+              }
+            }
+          }
+        },
+        "state_changed"
+      ).then((unsub) => {
+        this._motionUnsub = unsub;
+      }).catch((e) => {
+        console.warn("Timer Motion Card: Error subscribing to motion sensor", e);
+      });
+    } catch (e) {
+      console.warn("Timer Motion Card: Error subscribing to motion sensor", e);
     }
   }
 
@@ -400,6 +478,16 @@ export class LightCard
       // to only apply when turning on, not when adjusting
     }, 200);
   }
+  
+  private startTimerInterval(): void {
+    this.clearTimer(); // Clear any existing interval
+    
+    this._timerInterval = window.setInterval(() => {
+      this.updateTimer();
+    }, 1000);
+    // Call immediately to update display
+    this.updateTimer();
+  }
 
   private startTimerInterval(): void {
     this.clearTimer(); // Clear any existing interval
@@ -531,6 +619,7 @@ export class LightCard
               : this.renderIcon(stateObj, icon)}
             ${this.renderBadge(stateObj)}
             ${this.renderTimerIcon()}
+            ${this.renderMotionIcon()}
             ${this.renderStateInfo(stateObj, appearance, name, stateDisplay)};
           </mushroom-state-item>
           ${isControlVisible
