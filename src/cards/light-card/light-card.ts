@@ -391,7 +391,9 @@ export class LightCard
     const now = Date.now();
     const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
     
+    // Update the state to trigger re-render
     this._timerRemaining = remaining > 0 ? remaining : 0;
+    this.requestUpdate(); // Force re-render to update display
 
     if (remaining <= 0) {
       // Timer expired
