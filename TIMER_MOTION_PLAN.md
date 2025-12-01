@@ -4,7 +4,7 @@
 This is a fork of the Mushroom Light Card with added timer and motion sensor functionality.
 
 ## Repository Setup
-- **Origin**: https://github.com/ryandidurlabs/timer-motion-card.git
+- **Origin**: https://github.com/ryandidurlabs/super-mushroom-card.git
 - **Upstream**: https://github.com/piitaya/lovelace-mushroom.git
 
 ## Features to Add

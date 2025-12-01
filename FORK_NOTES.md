@@ -3,7 +3,7 @@
 ## Repository Information
 
 - **Fork Source**: https://github.com/piitaya/lovelace-mushroom
-- **This Repository**: https://github.com/ryandidurlabs/timer-motion-card
+- **This Repository**: https://github.com/ryandidurlabs/super-mushroom-card
 - **Upstream**: https://github.com/piitaya/lovelace-mushroom.git
 
 ## Purpose
