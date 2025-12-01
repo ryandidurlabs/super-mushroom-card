@@ -57,7 +57,10 @@
         "show_brightness_control": "Brightness control?",
         "show_color_control": "Color control?",
         "show_color_temp_control": "Color temperature control?",
-        "use_light_color": "Use light color"
+        "use_light_color": "Use light color",
+        "timer_enabled": "Enable timer",
+        "timer_duration": "Timer duration (seconds)",
+        "default_brightness": "Default brightness (%)"
       },
       "lock": {
         "lock": "Lock",

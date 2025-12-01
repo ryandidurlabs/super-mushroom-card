@@ -680,17 +680,22 @@ export class LightCard
           position: absolute;
           top: 8px;
           left: 8px;
-          z-index: 1;
+          z-index: 10;
           cursor: pointer;
+          pointer-events: auto;
         }
         .settings-icon {
           --mdc-icon-button-size: 32px;
           --mdc-icon-size: 18px;
           color: var(--secondary-text-color);
           opacity: 0.7;
+          pointer-events: auto;
         }
         .settings-icon:hover {
           opacity: 1;
+        }
+        .settings-icon-container ha-icon-button {
+          pointer-events: auto;
         }
       `,
     ];
