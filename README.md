@@ -1,4 +1,4 @@
-# 🍄 Mushroom
+# 🍄 Mushroom Cards (Enhanced Fork)
 
 [![hacs][hacs-badge]][hacs-url]
 [![release][release-badge]][release-url]
@@ -6,18 +6,24 @@
 ![build][build-badge]
 [![translations][translations-badge]][weblate-url]
 
-<a href="https://www.buymeacoffee.com/piitaya" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/white_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+> **This is an enhanced fork of [Mushroom Cards](https://github.com/piitaya/lovelace-mushroom) with additional features including timer and motion sensor functionality.**
 
 ![Overview](https://user-images.githubusercontent.com/5878303/152332130-760cf616-5c40-4825-a482-bb8f1f0f5251.png)
 
-## What is mushroom ?
+## What is this?
 
-Mushroom is a collection of cards for [Home Assistant][home-assistant] Dashboard UI.
+This is a fork of [Mushroom Cards](https://github.com/piitaya/lovelace-mushroom) - a collection of cards for [Home Assistant][home-assistant] Dashboard UI - with additional custom features.
 
-Mushroom mission is to propose easy to use components to build your [Home Assistant][home-assistant] dashboard.
+**Original Mushroom mission**: To propose easy to use components to build your [Home Assistant][home-assistant] dashboard.
+
+**This fork adds**:
+- ⏱️ **Timer functionality** for lights and fans
+- 🏃 **Motion sensor integration** for automatic control
+- 🎯 **Enhanced features** across multiple card types
 
 ### Features
 
+**All Original Mushroom Features:**
 - 🛠 Editor for **all cards** and and **all options** (no need to edit `yaml`)
 - 😍 Icon picker
 - 🖌 Color picker
@@ -26,6 +32,12 @@ Mushroom mission is to propose easy to use components to build your [Home Assist
 - 🌓 Light and dark theme support
 - 🎨 Optional theme customization
 - 🌎 Internationalization
+
+**Enhanced Features (This Fork):**
+- ⏱️ **Timer Functionality**: Automatically turn off lights/fans after a specified duration
+- ⏲️ **Countdown Display**: Timer countdown shown in card (e.g., "75% • 5:30")
+- 🏃 **Motion Sensor Integration**: Automatically control devices based on motion
+- 🎯 **Extended Functionality**: Additional features across multiple card types
 
 The goal of Mushroom is not to provide custom card for deep customization. You can use the excellent [UI Lovelace Minimalist][ui-lovelace-minimalist] and [Button card][button-card] plugins for this.
 
