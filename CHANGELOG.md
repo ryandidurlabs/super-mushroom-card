@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 1.0.10 (2024-12-01)
+
+### Fixed
+- **Timer and motion icons positioning** - Icons now appear in different locations instead of overlapping
+  - Timer icon positioned at top-right of badge area
+  - Motion icon positioned at bottom-right of badge area
+  - When both icons are present, they are spaced further apart (-8px) to avoid overlap
+  - Added proper RTL (right-to-left) language support for icon positioning
+
 ## Version 1.0.9 (2024-12-01)
 
 ### Added
