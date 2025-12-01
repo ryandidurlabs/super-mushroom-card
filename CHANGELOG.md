@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 1.0.12 (2024-12-01)
+
+### Fixed
+- **Settings gear icon visibility** - Now properly positioned and visible in upper right corner
+  - Moved settings icon outside mushroom-state-item to mushroom-card level for proper absolute positioning
+  - Changed container to use flexbox for better display
+- **Timer countdown display** - Timer now displays correctly
+  - Fixed display logic to show timer when >= 0 (not just > 0)
+  - Improved timer initialization to check state on connect and config changes
+  - Added force update in updated lifecycle to ensure timer display updates every second
+  - Fixed formatTime to handle edge cases properly
+
 ## Version 1.0.11 (2024-12-01)
 
 ### Changed
