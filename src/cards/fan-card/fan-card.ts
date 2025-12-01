@@ -509,9 +509,11 @@ export class FanCard
         : Date.now();
       const expirationTime = startTime + (duration * 1000);
       
-      const timerKey = `timer_expiration_${this._config.entity}`;
-      localStorage.setItem(timerKey, expirationTime.toString());
-      localStorage.setItem(`timer_start_${this._config.entity}`, startTime.toString());
+      if (this._config.entity) {
+        const timerKey = `timer_expiration_${this._config.entity}`;
+        localStorage.setItem(timerKey, expirationTime.toString());
+        localStorage.setItem(`timer_start_${this._config.entity}`, startTime.toString());
+      }
 
       this._timerExpirationTime = expirationTime;
       this.calculateRemainingTime();
