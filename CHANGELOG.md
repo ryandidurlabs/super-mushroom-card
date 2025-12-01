@@ -1,14 +1,20 @@
 # Changelog
 
-## Enhanced Fork - Initial Setup
+## Version 1.0.0 (2024-11-30)
 
-This is a fork of [Mushroom Cards](https://github.com/piitaya/lovelace-mushroom) with additional features.
+### Added
+- ⏱️ **Timer functionality** for Super Mushroom Light Card
+  - Timer countdown display next to brightness percentage
+  - Persistent timer that works across page reloads
+  - Automatic light turn-off when timer expires
+  - Timer icon badge when enabled
+  - Default brightness option when timer starts
+- ⚙️ **Settings gear icon** in upper left corner of card
+- 🏷️ **Versioning** - Proper version management
 
-### Planned Features
-
-- ⏱️ Timer functionality for lights and fans
-- 🏃 Motion sensor integration
-- 🎯 Additional enhancements to various card types
+### Changed
+- All cards renamed from "Mushroom" to "Super Mushroom"
+- Card prefix changed from "mushroom" to "super-mushroom"
 
 ### Upstream Version
 
