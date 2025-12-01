@@ -484,6 +484,13 @@ export class LightCard
       return;
     }
 
+    console.log("Super Mushroom Light Card: Initializing timer", {
+      timer_enabled: this._config.timer_enabled,
+      entity: this._config.entity,
+      stateObj: !!this._stateObj,
+      isActive: this._stateObj ? isActive(this._stateObj) : false
+    });
+
     // Check for existing timer in localStorage
     const timerKey = `timer_expiration_${this._config.entity}`;
     const storedExpiration = localStorage.getItem(timerKey);
@@ -506,6 +513,11 @@ export class LightCard
         calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
       }
       
+      console.log("Super Mushroom Light Card: Found stored timer", {
+        expirationTime,
+        calculatedRemaining
+      });
+      
       if (calculatedRemaining > 0) {
         this._timerExpirationTime = expirationTime;
         this._timerRemaining = calculatedRemaining;
@@ -516,6 +528,10 @@ export class LightCard
         this.turnOffLight();
         this.clearTimer();
       }
+    } else if (this._stateObj && isActive(this._stateObj) && !this._timerRemaining) {
+      // Light is on but no timer running - start it
+      console.log("Super Mushroom Light Card: Light is on but no timer, starting timer");
+      this.startTimer();
     } else {
       this._timerRemaining = undefined;
     }
@@ -541,12 +557,18 @@ export class LightCard
 
   private startTimer(): void {
     if (!this._config?.timer_enabled || !this._config.entity || !this._stateObj) {
+      console.log("Super Mushroom Light Card: Timer not started - config check failed", {
+        timer_enabled: this._config?.timer_enabled,
+        entity: this._config?.entity,
+        stateObj: !!this._stateObj
+      });
       return;
     }
 
     // Wait a bit for state to update after toggle
     setTimeout(() => {
       if (!isActive(this._stateObj!)) {
+        console.log("Super Mushroom Light Card: Timer not started - light is not active");
         return;
       }
 
@@ -561,6 +583,11 @@ export class LightCard
 
       this._timerExpirationTime = expirationTime;
       this._timerRemaining = duration;
+      console.log("Super Mushroom Light Card: Timer started", {
+        duration,
+        remaining: this._timerRemaining,
+        expirationTime
+      });
       this.startTimerInterval();
       this.requestUpdate(); // Force re-render to show timer
       
@@ -588,6 +615,10 @@ export class LightCard
     
     // Update the state to trigger re-render
     this._timerRemaining = remaining > 0 ? remaining : 0;
+    console.log("Super Mushroom Light Card: Timer update", {
+      remaining: this._timerRemaining,
+      formatted: this.formatTime(this._timerRemaining)
+    });
     this.requestUpdate(); // Force re-render to update display
 
     if (remaining <= 0) {
@@ -675,6 +706,11 @@ export class LightCard
       ) {
         const timeStr = this.formatTime(this._timerRemaining);
         stateDisplay = `${stateDisplay} • ${timeStr}`;
+        console.log("Super Mushroom Light Card: Adding timer to brightness display", {
+          brightness: stateDisplay,
+          timerRemaining: this._timerRemaining,
+          timeStr
+        });
       }
     } else if (
       this._config?.timer_enabled &&
@@ -685,6 +721,11 @@ export class LightCard
       // Add timer even if no brightness
       const timeStr = this.formatTime(this._timerRemaining);
       stateDisplay = `${stateDisplay} • ${timeStr}`;
+      console.log("Super Mushroom Light Card: Adding timer to state display", {
+        stateDisplay,
+        timerRemaining: this._timerRemaining,
+        timeStr
+      });
     }
 
     const rtl = computeRTL(this.hass);
@@ -784,12 +825,11 @@ export class LightCard
       return nothing;
     }
     return html`
-      <div class="settings-icon-container" @click=${this._openSettings}>
-        <ha-icon-button
+      <div class="settings-icon-container" @click=${this._openSettings} title="Settings">
+        <ha-icon
           .icon=${"mdi:cog"}
-          .label=${"Settings"}
           class="settings-icon"
-        ></ha-icon-button>
+        ></ha-icon>
       </div>
     `;
   }
@@ -941,18 +981,19 @@ export class LightCard
           justify-content: center;
         }
         .settings-icon {
-          --mdc-icon-button-size: 32px;
-          --mdc-icon-size: 18px;
+          --mdc-icon-size: 20px;
           color: var(--secondary-text-color);
           opacity: 0.7;
           pointer-events: auto;
           display: block !important;
           visibility: visible !important;
+          width: 20px;
+          height: 20px;
         }
         .settings-icon:hover {
           opacity: 1 !important;
         }
-        .settings-icon-container ha-icon-button {
+        .settings-icon-container ha-icon {
           pointer-events: auto;
           display: block !important;
           visibility: visible !important;
