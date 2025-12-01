@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.0.7 (2024-12-01)
+
+### Added
+- 🏃 **Motion sensor functionality** - Light can now be controlled by motion sensors
+  - Enable motion sensor control in card settings
+  - Select motion sensor entity from dropdown
+  - Motion icon badge displays when motion is enabled
+  - Light turns on when motion is detected
+  - Works with default brightness and timer features
+
+### Fixed
+- Fixed timer countdown display - timer now updates immediately on start
+- Fixed duplicate startTimerInterval method
+- Improved settings gear icon visibility with !important CSS
+
 ## Version 1.0.6 (2024-12-01)
 
 ### Fixed
