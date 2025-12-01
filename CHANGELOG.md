@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 1.0.9 (2024-12-01)
+
+### Added
+- Added `manifest.json` for proper version tracking and cache-busting
+- Comprehensive error handling throughout the card to prevent configuration errors
+- Better defensive programming with null checks and try-catch blocks
+- Graceful degradation when configuration is partial or missing
+
+### Fixed
+- **Reduced configuration errors after updates** - Card now handles partial configs gracefully
+- Improved error recovery - card continues to function even if some features fail to initialize
+- Better cleanup of event subscriptions to prevent memory leaks
+- Enhanced error messages in console for easier debugging
+
+### Changed
+- Updated README with detailed troubleshooting steps for configuration errors
+- Improved error handling in `setConfig`, `connectedCallback`, `updated`, and subscription methods
+- All service calls and event handlers now wrapped in try-catch blocks
+
 ## Version 1.0.8 (2024-12-01)
 
 ### Changed

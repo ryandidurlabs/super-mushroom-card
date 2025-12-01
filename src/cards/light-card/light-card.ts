@@ -134,18 +134,53 @@ export class LightCard
   }
 
   setConfig(config: LightCardConfig): void {
-    super.setConfig({
-      tap_action: {
-        action: "toggle",
-      },
-      hold_action: {
-        action: "more-info",
-      },
-      ...config,
-    });
-    this.updateActiveControl();
-    this.updateBrightness();
-    this.initializeTimer();
+    try {
+      // Validate entity exists
+      if (!config || !config.entity) {
+        console.warn("Super Mushroom Light Card: Missing entity in config");
+        return;
+      }
+
+      // Ensure all optional properties have safe defaults
+      const safeConfig: LightCardConfig = {
+        tap_action: {
+          action: "toggle",
+        },
+        hold_action: {
+          action: "more-info",
+        },
+        ...config,
+        // Ensure timer properties are defined
+        timer_enabled: config.timer_enabled ?? false,
+        timer_duration: config.timer_duration ?? 300,
+        default_brightness_enabled: config.default_brightness_enabled ?? false,
+        default_brightness: config.default_brightness ?? undefined,
+        motion_enabled: config.motion_enabled ?? false,
+        motion_sensor: config.motion_sensor ?? undefined,
+      };
+      
+      super.setConfig(safeConfig);
+      
+      // Only update if hass is available
+      if (this.hass) {
+        this.updateActiveControl();
+        this.updateBrightness();
+        this.initializeTimer();
+      }
+    } catch (error) {
+      console.error("Super Mushroom Light Card: Error setting config", error);
+      // Set minimal config to prevent complete failure
+      try {
+        super.setConfig({
+          type: `custom:${LIGHT_CARD_NAME}`,
+          tap_action: { action: "toggle" },
+          hold_action: { action: "more-info" },
+          entity: config?.entity || "",
+        });
+      } catch (e) {
+        console.error("Super Mushroom Light Card: Failed to set minimal config", e);
+      }
+    }
   }
 
   _onControlTap(ctrl, e): void {
@@ -155,25 +190,37 @@ export class LightCard
 
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
-    if (this.hass && changedProperties.has("hass")) {
-      this.updateActiveControl();
-      this.updateBrightness();
-      this.checkTimerState();
-      this.subscribeToStateChanges();
-      this.subscribeToMotionSensor();
-    }
-    if (changedProperties.has("_config")) {
-      this.initializeTimer();
-      this.subscribeToStateChanges();
-      this.subscribeToMotionSensor();
+    try {
+      if (this.hass && changedProperties.has("hass")) {
+        this.updateActiveControl();
+        this.updateBrightness();
+        this.checkTimerState();
+        this.subscribeToStateChanges();
+        this.subscribeToMotionSensor();
+      }
+      if (changedProperties.has("_config")) {
+        this.initializeTimer();
+        if (this.hass) {
+          this.subscribeToStateChanges();
+          this.subscribeToMotionSensor();
+        }
+      }
+    } catch (error) {
+      console.warn("Super Mushroom Light Card: Error in updated lifecycle", error);
     }
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this.initializeTimer();
-    this.subscribeToStateChanges();
-    this.subscribeToMotionSensor();
+    try {
+      this.initializeTimer();
+      if (this.hass) {
+        this.subscribeToStateChanges();
+        this.subscribeToMotionSensor();
+      }
+    } catch (error) {
+      console.warn("Super Mushroom Light Card: Error in connectedCallback", error);
+    }
   }
 
   disconnectedCallback() {
@@ -190,66 +237,89 @@ export class LightCard
   }
 
   private subscribeToStateChanges(): void {
-    if (!this.hass?.connection || !this._config?.entity) return;
+    if (!this.hass?.connection || !this._config?.entity) {
+      // Clean up if conditions not met
+      if (this._stateUnsub) {
+        try {
+          this._stateUnsub();
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
+        this._stateUnsub = undefined;
+      }
+      return;
+    }
 
     // Unsubscribe from previous subscription if any
     if (this._stateUnsub) {
-      this._stateUnsub();
+      try {
+        this._stateUnsub();
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
       this._stateUnsub = undefined;
     }
 
     try {
       this.hass.connection.subscribeEvents(
         (ev: any) => {
-          if (ev.data?.entity_id === this._config?.entity) {
-            const newState = ev.data.new_state;
-            const oldState = ev.data.old_state;
-            
-            // If light just turned on and timer is enabled, start timer
-            if (
-              newState?.state === "on" &&
-              oldState?.state !== "on" &&
-              this._config?.timer_enabled &&
-              !this._timerRemaining
-            ) {
-              this.startTimer();
-            }
-            
-            // Note: Default brightness is now handled in _handleAction when user clicks the card
-            // This prevents loops from state change events
-            
-            // If light just turned off, clear timer and reset default brightness flag
-            if (
-              newState?.state === "off" &&
-              oldState?.state === "on"
-            ) {
-              if (this._config?.timer_enabled) {
-                this.clearTimer();
+          try {
+            if (ev?.data?.entity_id === this._config?.entity) {
+              const newState = ev.data.new_state;
+              const oldState = ev.data.old_state;
+              
+              // If light just turned on and timer is enabled, start timer
+              if (
+                newState?.state === "on" &&
+                oldState?.state !== "on" &&
+                this._config?.timer_enabled &&
+                !this._timerRemaining
+              ) {
+                this.startTimer();
               }
-              this._defaultBrightnessApplied = false;
+              
+              // Note: Default brightness is now handled in _handleAction when user clicks the card
+              // This prevents loops from state change events
+              
+              // If light just turned off, clear timer and reset default brightness flag
+              if (
+                newState?.state === "off" &&
+                oldState?.state === "on"
+              ) {
+                if (this._config?.timer_enabled) {
+                  this.clearTimer();
+                }
+                this._defaultBrightnessApplied = false;
+              }
+              
+              // Update brightness and timer display
+              this.updateBrightness();
+              this.requestUpdate();
             }
-            
-            // Update brightness and timer display
-            this.updateBrightness();
-            this.requestUpdate();
+          } catch (e) {
+            console.warn("Super Mushroom Light Card: Error in state change handler", e);
           }
         },
         "state_changed"
       ).then((unsub) => {
         this._stateUnsub = unsub;
       }).catch((e) => {
-        console.warn("Timer Motion Card: Error subscribing to state changes", e);
+        console.warn("Super Mushroom Light Card: Error subscribing to state changes", e);
       });
     } catch (e) {
-      console.warn("Timer Motion Card: Error subscribing to state changes", e);
+      console.warn("Super Mushroom Light Card: Error subscribing to state changes", e);
     }
   }
 
   private subscribeToMotionSensor(): void {
-    if (!this.hass?.connection || !this._config?.motion_enabled || !this._config?.motion_sensor) {
-      // Unsubscribe if motion is disabled
+    if (!this.hass?.connection || !this._config?.motion_enabled || !this._config?.motion_sensor || !this._config?.entity) {
+      // Unsubscribe if motion is disabled or config invalid
       if (this._motionUnsub) {
-        this._motionUnsub();
+        try {
+          this._motionUnsub();
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
         this._motionUnsub = undefined;
       }
       return;
@@ -257,61 +327,66 @@ export class LightCard
 
     // Unsubscribe from previous subscription if any
     if (this._motionUnsub) {
-      this._motionUnsub();
+      try {
+        this._motionUnsub();
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
       this._motionUnsub = undefined;
     }
 
     try {
       this.hass.connection.subscribeEvents(
         (ev: any) => {
-          if (ev.data?.entity_id === this._config?.motion_sensor) {
-            const newState = ev.data.new_state;
-            const oldState = ev.data.old_state;
-            
-            // If motion sensor turns on (motion detected), turn on the light
-            if (
-              newState?.state === "on" &&
-              oldState?.state !== "on" &&
-              this._config?.entity
-            ) {
-              // Apply default brightness if enabled
+          try {
+            if (ev?.data?.entity_id === this._config?.motion_sensor) {
+              const newState = ev.data.new_state;
+              const oldState = ev.data.old_state;
+              
+              // If motion sensor turns on (motion detected), turn on the light
               if (
-                this._config?.default_brightness_enabled &&
-                this._config?.default_brightness != null &&
-                this._config?.default_brightness >= 0 &&
-                this._config?.default_brightness <= 100
+                newState?.state === "on" &&
+                oldState?.state !== "on" &&
+                this._config?.entity &&
+                this.hass
               ) {
-                if (supportsBrightnessControl(this._stateObj!)) {
-                  this.hass!.callService("light", "turn_on", {
+                // Apply default brightness if enabled
+                if (
+                  this._config?.default_brightness_enabled &&
+                  this._config?.default_brightness != null &&
+                  this._config?.default_brightness >= 0 &&
+                  this._config?.default_brightness <= 100 &&
+                  this._stateObj &&
+                  supportsBrightnessControl(this._stateObj)
+                ) {
+                  this.hass.callService("light", "turn_on", {
                     entity_id: this._config.entity,
                     brightness_pct: this._config.default_brightness,
                   });
                 } else {
-                  this.hass!.callService("light", "turn_on", {
+                  this.hass.callService("light", "turn_on", {
                     entity_id: this._config.entity,
                   });
                 }
-              } else {
-                this.hass!.callService("light", "turn_on", {
-                  entity_id: this._config.entity,
-                });
-              }
-              
-              // Start timer if enabled
-              if (this._config?.timer_enabled && !this._timerRemaining) {
-                setTimeout(() => this.startTimer(), 200);
+                
+                // Start timer if enabled
+                if (this._config?.timer_enabled && !this._timerRemaining) {
+                  setTimeout(() => this.startTimer(), 200);
+                }
               }
             }
+          } catch (e) {
+            console.warn("Super Mushroom Light Card: Error in motion sensor handler", e);
           }
         },
         "state_changed"
       ).then((unsub) => {
         this._motionUnsub = unsub;
       }).catch((e) => {
-        console.warn("Timer Motion Card: Error subscribing to motion sensor", e);
+        console.warn("Super Mushroom Light Card: Error subscribing to motion sensor", e);
       });
     } catch (e) {
-      console.warn("Timer Motion Card: Error subscribing to motion sensor", e);
+      console.warn("Super Mushroom Light Card: Error subscribing to motion sensor", e);
     }
   }
 
@@ -339,52 +414,60 @@ export class LightCard
   }
 
   private _handleAction(ev: ActionHandlerEvent) {
-    const actionType = ev.detail.action;
-    if (actionType === "tap" && this._stateObj) {
-      const tapAction = this._config?.tap_action;
-      if (tapAction?.action === "toggle") {
-        const wasOff = !isActive(this._stateObj);
-        
-        // If turning on, apply default brightness first (if enabled)
-        if (wasOff && 
-            this._config?.default_brightness_enabled &&
-            this._config?.default_brightness != null &&
-            this._config?.default_brightness >= 0 &&
-            this._config?.default_brightness <= 100) {
-          if (supportsBrightnessControl(this._stateObj)) {
-            // Turn on with default brightness
-            this.hass!.callService("light", "turn_on", {
-              entity_id: this._config.entity,
-              brightness_pct: this._config.default_brightness,
-            });
-            this._defaultBrightnessApplied = true;
-            
-            // Start timer if enabled
-            if (this._config?.timer_enabled) {
-              setTimeout(() => this.startTimer(), 200);
+    if (!this.hass || !this._config || !this._stateObj) {
+      return;
+    }
+
+    try {
+      const actionType = ev.detail?.action;
+      if (actionType === "tap") {
+        const tapAction = this._config.tap_action;
+        if (tapAction?.action === "toggle") {
+          const wasOff = !isActive(this._stateObj);
+          
+          // If turning on, apply default brightness first (if enabled)
+          if (wasOff && 
+              this._config.default_brightness_enabled &&
+              this._config.default_brightness != null &&
+              this._config.default_brightness >= 0 &&
+              this._config.default_brightness <= 100) {
+            if (supportsBrightnessControl(this._stateObj)) {
+              // Turn on with default brightness
+              this.hass.callService("light", "turn_on", {
+                entity_id: this._config.entity,
+                brightness_pct: this._config.default_brightness,
+              });
+              this._defaultBrightnessApplied = true;
+              
+              // Start timer if enabled
+              if (this._config.timer_enabled) {
+                setTimeout(() => this.startTimer(), 200);
+              }
+              return; // Don't call handleAction again
             }
-            return; // Don't call handleAction again
           }
-        }
-        
-        // If turning on and timer is enabled, start timer
-        if (wasOff && this._config?.timer_enabled) {
-          // Light will be turned on by handleAction, then we start timer
-          handleAction(this, this.hass!, this._config!, actionType);
-          setTimeout(() => this.startTimer(), 100);
-          return;
-        }
-        
-        // If turning off, clear timer and reset default brightness flag
-        if (!wasOff) {
-          if (this._config?.timer_enabled) {
-            this.clearTimer();
+          
+          // If turning on and timer is enabled, start timer
+          if (wasOff && this._config.timer_enabled) {
+            // Light will be turned on by handleAction, then we start timer
+            handleAction(this, this.hass, this._config, actionType);
+            setTimeout(() => this.startTimer(), 100);
+            return;
           }
-          this._defaultBrightnessApplied = false;
+          
+          // If turning off, clear timer and reset default brightness flag
+          if (!wasOff) {
+            if (this._config.timer_enabled) {
+              this.clearTimer();
+            }
+            this._defaultBrightnessApplied = false;
+          }
         }
       }
+      handleAction(this, this.hass, this._config, actionType);
+    } catch (e) {
+      console.warn("Super Mushroom Light Card: Error handling action", e);
     }
-    handleAction(this, this.hass!, this._config!, actionType);
   }
 
   // Timer methods
@@ -460,12 +543,12 @@ export class LightCard
         return;
       }
 
-      const duration = this._config.timer_duration || 300; // default 5 minutes
+      const duration = (this._config?.timer_duration || 300); // default 5 minutes
       const startTime = Date.now();
       const expirationTime = startTime + duration * 1000;
       
       // Store expiration and start time in localStorage for persistence
-      const timerKey = `timer_expiration_${this._config.entity}`;
+      const timerKey = `timer_expiration_${this._config?.entity || ""}`;
       localStorage.setItem(timerKey, expirationTime.toString());
       localStorage.setItem(`${timerKey}_start`, startTime.toString());
 
@@ -525,11 +608,15 @@ export class LightCard
   private turnOffLight(): void {
     if (!this.hass || !this._config?.entity) return;
     
-    this.hass.callService("light", "turn_off", {
-      entity_id: this._config.entity,
-    });
-    // Reset default brightness flag when light is turned off
-    this._defaultBrightnessApplied = false;
+    try {
+      this.hass.callService("light", "turn_off", {
+        entity_id: this._config.entity,
+      });
+      // Reset default brightness flag when light is turned off
+      this._defaultBrightnessApplied = false;
+    } catch (e) {
+      console.warn("Super Mushroom Light Card: Error turning off light", e);
+    }
   }
 
   private formatTime(seconds: number): string {
@@ -539,7 +626,12 @@ export class LightCard
   }
 
   protected render() {
-    if (!this._config || !this.hass || !this._config.entity) {
+    if (!this._config || !this.hass) {
+      return nothing;
+    }
+    
+    // Ensure entity is defined
+    if (!this._config.entity) {
       return nothing;
     }
 
@@ -548,6 +640,9 @@ export class LightCard
     if (!stateObj) {
       return this.renderNotFound(this._config);
     }
+    
+    // Ensure config properties are safely accessed
+    try {
 
     const name = this._config.name || stateObj.attributes.friendly_name || "";
     const icon = this._config.icon;
@@ -623,6 +718,16 @@ export class LightCard
         </mushroom-card>
       </ha-card>
     `;
+    } catch (error) {
+      console.error("Super Mushroom Light Card: Error rendering", error);
+      return html`
+        <ha-card>
+          <div class="card-content">
+            <div class="error">Error rendering card. Please check configuration.</div>
+          </div>
+        </ha-card>
+      `;
+    }
   }
 
   protected renderTimerIcon(): TemplateResult | typeof nothing {
@@ -633,6 +738,19 @@ export class LightCard
       <mushroom-badge-icon
         slot="badge"
         .icon=${"mdi:timer-outline"}
+        style="--main-color: var(--rgb-secondary-text-color);"
+      ></mushroom-badge-icon>
+    `;
+  }
+
+  protected renderMotionIcon(): TemplateResult | typeof nothing {
+    if (!this._config?.motion_enabled) {
+      return nothing;
+    }
+    return html`
+      <mushroom-badge-icon
+        slot="badge"
+        .icon=${"mdi:motion-sensor"}
         style="--main-color: var(--rgb-secondary-text-color);"
       ></mushroom-badge-icon>
     `;

@@ -180,6 +180,35 @@ If you want to help translating Mushroom, you can translate it directly from you
    - uninstall Mushroom from HACS
    - reinstall Mushroom from HACS
 
+### Configuration Error After Update
+
+If you see a "Configuration error" message after updating the card, try these steps **in order** (usually step 1-2 is enough):
+
+1. **Clear Browser Cache** (Most Common Fix):
+   - **Chrome/Edge**: Press `Ctrl+Shift+Delete` (Windows/Linux) or `Cmd+Shift+Delete` (Mac)
+   - Select "Cached images and files" and "Cookies and other site data"
+   - Click "Clear data"
+   - **Or** Hard refresh: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+
+2. **Reload Home Assistant Frontend**:
+   - Go to **Developer Tools** → **YAML** → Click **"Reload All"**
+   - Or press `Ctrl+R` (Windows/Linux) or `Cmd+R` (Mac) to refresh the page
+
+3. **Clear Lovelace Resources** (if steps 1-2 don't work):
+   - Go to **Settings** → **Dashboards** → **Resources**
+   - Find the Super Mushroom resource
+   - Click **Remove** then **Add Resource** again
+   - Set URL to `/hacsfiles/super-mushroom-card/mushroom.js`
+   - Set Type to `JavaScript Module`
+
+4. **Full Reinstall** (Last Resort):
+   - Uninstall from HACS
+   - Clear browser cache completely
+   - Reinstall from HACS
+   - Reload Home Assistant frontend
+
+**Note**: With improved error handling in version 1.0.9+, configuration errors should be much less common. The card now gracefully handles partial configurations and missing properties during updates.
+
 ### My card mod configuration doesn't work.
 
 Help about card mod configuration is not provided in this repository. More info in the [state of card mod support](https://github.com/piitaya/lovelace-mushroom/issues/1366).
