@@ -71,18 +71,18 @@ export interface LovelaceCardFeatureContext {
   area_id?: string;
 }
 
-@customElement("mushroom-template-card")
+@customElement("super-mushroom-template-card")
 export class MushroomTemplateCard extends LitElement implements LovelaceCard {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     await import("./template-card-editor");
     return document.createElement(
-      "mushroom-template-card-editor"
+      "super-mushroom-template-card-editor"
     ) as LovelaceCardEditor;
   }
 
   public static getStubConfig(): TemplateCardConfig {
     return {
-      type: `custom:mushroom-template-card`,
+      type: `custom:super-mushroom-template-card`,
       primary: "Hello, {{user}}",
       secondary: "How are you?",
       icon: "mdi:mushroom",
@@ -691,6 +691,6 @@ export class MushroomTemplateCard extends LitElement implements LovelaceCard {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "mushroom-template-card": MushroomTemplateCard;
+    "super-mushroom-template-card": MushroomTemplateCard;
   }
 }
