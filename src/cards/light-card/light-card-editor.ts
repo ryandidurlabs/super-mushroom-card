@@ -19,6 +19,7 @@ export const LIGHT_LABELS = [
   "show_color_control",
   "timer_enabled",
   "timer_duration",
+  "default_brightness_enabled",
   "default_brightness",
 ];
 
@@ -58,6 +59,7 @@ const SCHEMA: HaFormSchema[] = [
         name: "timer_duration",
         selector: { number: { min: 60, max: 3600, step: 60, unit_of_measurement: "seconds" } },
       },
+      { name: "default_brightness_enabled", selector: { boolean: {} } },
       {
         name: "default_brightness",
         selector: { number: { min: 0, max: 100, step: 1, unit_of_measurement: "%" } },

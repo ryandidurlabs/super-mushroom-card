@@ -206,6 +206,26 @@ export class LightCard
               this.startTimer();
             }
             
+            // Apply default brightness when light turns on (only if enabled and just turned on)
+            if (
+              newState?.state === "on" &&
+              oldState?.state !== "on" &&
+              this._config?.default_brightness_enabled &&
+              this._config?.default_brightness != null &&
+              this._config?.default_brightness >= 0 &&
+              this._config?.default_brightness <= 100
+            ) {
+              if (supportsBrightnessControl(newState)) {
+                // Small delay to ensure state is updated
+                setTimeout(() => {
+                  this.hass!.callService("light", "turn_on", {
+                    entity_id: this._config!.entity,
+                    brightness_pct: this._config!.default_brightness,
+                  });
+                }, 100);
+              }
+            }
+            
             // If light just turned off, clear timer
             if (
               newState?.state === "off" &&
@@ -362,17 +382,8 @@ export class LightCard
       this.startTimerInterval();
       this.requestUpdate(); // Force re-render to show timer
       
-      // Apply default brightness if configured
-      if (this._config.default_brightness != null && 
-          this._config.default_brightness >= 0 && 
-          this._config.default_brightness <= 100) {
-        if (supportsBrightnessControl(this._stateObj!)) {
-          this.hass!.callService("light", "turn_on", {
-            entity_id: this._config.entity,
-            brightness_pct: this._config.default_brightness,
-          });
-        }
-      }
+      // Note: Default brightness is now handled in state subscription
+      // to only apply when turning on, not when adjusting
     }, 200);
   }
 
@@ -680,9 +691,10 @@ export class LightCard
           position: absolute;
           top: 8px;
           left: 8px;
-          z-index: 10;
+          z-index: 100;
           cursor: pointer;
           pointer-events: auto;
+          display: block;
         }
         .settings-icon {
           --mdc-icon-button-size: 32px;
@@ -690,12 +702,17 @@ export class LightCard
           color: var(--secondary-text-color);
           opacity: 0.7;
           pointer-events: auto;
+          display: block;
         }
         .settings-icon:hover {
           opacity: 1;
         }
         .settings-icon-container ha-icon-button {
           pointer-events: auto;
+          display: block;
+        }
+        mushroom-card {
+          position: relative;
         }
       `,
     ];

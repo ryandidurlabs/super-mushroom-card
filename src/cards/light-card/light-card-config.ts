@@ -27,6 +27,7 @@ export type LightCardConfig = LovelaceCardConfig &
     // Timer functionality
     timer_enabled?: boolean;
     timer_duration?: number; // in seconds
+    default_brightness_enabled?: boolean;
     default_brightness?: number; // 0-100, optional
   };
 
@@ -46,6 +47,7 @@ export const lightCardConfigStruct = assign(
     use_light_color: optional(boolean()),
     timer_enabled: optional(boolean()),
     timer_duration: optional(number()),
+    default_brightness_enabled: optional(boolean()),
     default_brightness: optional(number()),
   })
 );

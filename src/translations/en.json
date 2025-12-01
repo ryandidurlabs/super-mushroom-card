@@ -60,6 +60,7 @@
         "use_light_color": "Use light color",
         "timer_enabled": "Enable timer",
         "timer_duration": "Timer duration (seconds)",
+        "default_brightness_enabled": "Enable default brightness",
         "default_brightness": "Default brightness (%)"
       },
       "lock": {
