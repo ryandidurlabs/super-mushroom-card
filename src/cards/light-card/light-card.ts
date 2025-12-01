@@ -615,11 +615,6 @@ export class LightCard
 
   private updateTimer(): void {
     if (!this._config?.timer_enabled || !this._config.entity || !this._timerExpirationTime) {
-      console.log("Super Mushroom Light Card: Timer update - clearing", {
-        timer_enabled: this._config?.timer_enabled,
-        entity: this._config?.entity,
-        expirationTime: this._timerExpirationTime
-      });
       this.clearTimer();
       return;
     }
@@ -627,24 +622,14 @@ export class LightCard
     const now = Date.now();
     const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
     
-    // Update the state to trigger re-render
-    const oldRemaining = this._timerRemaining;
+    // Update the state to trigger re-render - this is a @state() property so it will trigger Lit to re-render
     this._timerRemaining = remaining > 0 ? remaining : 0;
     
-    console.log("Super Mushroom Light Card: Timer update", {
-      oldRemaining,
-      newRemaining: this._timerRemaining,
-      formatted: this.formatTime(this._timerRemaining),
-      expirationTime: this._timerExpirationTime,
-      now
-    });
-    
-    // Always request update to ensure display refreshes
+    // Force update to ensure the display refreshes with the new timer value
     this.requestUpdate();
 
     if (remaining <= 0) {
       // Timer expired
-      console.log("Super Mushroom Light Card: Timer expired, turning off light");
       this.turnOffLight();
       this.clearTimer();
     }
