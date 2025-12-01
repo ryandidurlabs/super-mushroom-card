@@ -456,13 +456,20 @@ export class LightCard
             }
           }
           
-          // If turning on and timer is enabled, start timer
-          if (wasOff && this._config.timer_enabled) {
-            // Light will be turned on by handleAction, then we start timer
-            handleAction(this, this.hass, this._config, actionType);
-            setTimeout(() => this.startTimer(), 100);
-            return;
-          }
+        // If turning on and timer is enabled, start timer
+        if (wasOff && this._config.timer_enabled) {
+          // Light will be turned on by handleAction, then we start timer
+          handleAction(this, this.hass, this._config, actionType);
+          // Wait a bit longer to ensure state has updated
+          setTimeout(() => {
+            console.log("Super Mushroom Light Card: Starting timer after toggle", {
+              stateObj: this._stateObj,
+              isActive: this._stateObj ? isActive(this._stateObj) : false
+            });
+            this.startTimer();
+          }, 300);
+          return;
+        }
           
           // If turning off, clear timer and reset default brightness flag
           if (!wasOff) {
@@ -608,6 +615,11 @@ export class LightCard
 
   private updateTimer(): void {
     if (!this._config?.timer_enabled || !this._config.entity || !this._timerExpirationTime) {
+      console.log("Super Mushroom Light Card: Timer update - clearing", {
+        timer_enabled: this._config?.timer_enabled,
+        entity: this._config?.entity,
+        expirationTime: this._timerExpirationTime
+      });
       this.clearTimer();
       return;
     }
@@ -616,15 +628,23 @@ export class LightCard
     const remaining = Math.max(0, Math.ceil((this._timerExpirationTime - now) / 1000));
     
     // Update the state to trigger re-render
+    const oldRemaining = this._timerRemaining;
     this._timerRemaining = remaining > 0 ? remaining : 0;
+    
     console.log("Super Mushroom Light Card: Timer update", {
-      remaining: this._timerRemaining,
-      formatted: this.formatTime(this._timerRemaining)
+      oldRemaining,
+      newRemaining: this._timerRemaining,
+      formatted: this.formatTime(this._timerRemaining),
+      expirationTime: this._timerExpirationTime,
+      now
     });
-    this.requestUpdate(); // Force re-render to update display
+    
+    // Always request update to ensure display refreshes
+    this.requestUpdate();
 
     if (remaining <= 0) {
       // Timer expired
+      console.log("Super Mushroom Light Card: Timer expired, turning off light");
       this.turnOffLight();
       this.clearTimer();
     }
@@ -701,14 +721,28 @@ export class LightCard
     }
     
     // Always add timer countdown next to state/brightness if timer is enabled and active
-    if (
+    const shouldShowTimer = 
       this._config?.timer_enabled &&
       isActive(stateObj) &&
       this._timerRemaining != null &&
-      this._timerRemaining >= 0
-    ) {
-      const timeStr = this.formatTime(this._timerRemaining);
+      this._timerRemaining >= 0;
+    
+    console.log("Super Mushroom Light Card: Render timer check", {
+      timer_enabled: this._config?.timer_enabled,
+      isActive: isActive(stateObj),
+      timerRemaining: this._timerRemaining,
+      shouldShowTimer,
+      stateDisplay: stateDisplay
+    });
+    
+    if (shouldShowTimer) {
+      const timeStr = this.formatTime(this._timerRemaining!);
       stateDisplay = `${stateDisplay} • ${timeStr}`;
+      console.log("Super Mushroom Light Card: Adding timer to display", {
+        originalStateDisplay: stateDisplay.replace(` • ${timeStr}`, ""),
+        timeStr,
+        finalStateDisplay: stateDisplay
+      });
     }
 
     const rtl = computeRTL(this.hass);
@@ -939,33 +973,6 @@ export class LightCard
                   @change=${this._handleMotionToggle}
                 ></ha-switch>
               </div>
-              ${this._config.motion_enabled
-                ? html`
-                    <div class="settings-row">
-                      <div class="settings-label">Motion Sensor</div>
-                      <ha-entity-picker
-                        .hass=${this.hass}
-                        .value=${this._config.motion_sensor || ""}
-                        @value-changed=${(e: CustomEvent) => {
-                          const target = e.target as any;
-                          if (this._config) {
-                            const newConfig = {
-                              ...this._config,
-                              motion_sensor: target.value || undefined,
-                            };
-                            this._updateConfig(newConfig);
-                          }
-                        }}
-                        .includeDomains=${["binary_sensor"]}
-                        .entityFilter=${(entity: any) =>
-                          entity.attributes.device_class === "motion" ||
-                          entity.entity_id.includes("motion")}
-                        allow-custom-entity
-                        class="settings-select"
-                      ></ha-entity-picker>
-                    </div>
-                  `
-                : nothing}
             </div>
           </div>
         </div>
