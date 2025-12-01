@@ -308,6 +308,7 @@ export class LightCard
         this._timerExpirationTime = expirationTime;
         this._timerRemaining = calculatedRemaining;
         this.startTimerInterval();
+        this.requestUpdate(); // Force re-render to show timer
       } else {
         // Timer expired - turn off light
         this.turnOffLight();
@@ -359,6 +360,7 @@ export class LightCard
       this._timerExpirationTime = expirationTime;
       this._timerRemaining = duration;
       this.startTimerInterval();
+      this.requestUpdate(); // Force re-render to show timer
       
       // Apply default brightness if configured
       if (this._config.default_brightness != null && 
