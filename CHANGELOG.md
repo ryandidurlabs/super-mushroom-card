@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 1.0.6 (2024-12-01)
+
+### Fixed
+- Fixed default brightness causing rapid flashing - now checks if brightness is already at target before applying
+- Added tolerance check (5%) to prevent applying default brightness if already close to target
+- Reset default brightness flag when user manually adjusts brightness significantly
+- Fixed gear icon visibility with !important CSS rules
+- Improved timer countdown display logic
+
 ## Version 1.0.5 (2024-12-01)
 
 ### Fixed
