@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 1.0.21 (2024-12-01)
+
+### Fixed
+- **Timer persistence on page reload** - Timer now correctly continues counting after page reload
+  - Simplified timer restoration logic to use only expiration time (no need for start time or last_changed)
+  - Fixed `checkTimerState()` to check localStorage before starting new timer
+  - Timer now properly restores from localStorage when page is reloaded
+  - Timer continues counting in the background even when page is closed
+
+### Technical Details
+- Removed complex calculation using `last_changed` and `startTime`
+- Now uses simple calculation: `remaining = expirationTime - now`
+- This works correctly even after page reloads because expiration time is absolute
+- `checkTimerState()` now respects existing timers in localStorage
+
 ## Version 1.0.20 (2024-12-01)
 
 ### Critical Fix
