@@ -734,12 +734,19 @@ export class LightCard
     if (!this._config?.timer_enabled) {
       return nothing;
     }
+    // Position timer icon at top-right when both icons are present, otherwise default position
+    const hasMotion = this._config?.motion_enabled;
+    const topOffset = hasMotion ? "-8px" : "-3px";
+    const rtl = computeRTL(this.hass);
+    const horizontalPos = rtl ? "left: -3px; right: auto;" : "right: -3px; left: auto;";
     return html`
-      <mushroom-badge-icon
-        slot="badge"
-        .icon=${"mdi:timer-outline"}
-        style="--main-color: var(--rgb-secondary-text-color);"
-      ></mushroom-badge-icon>
+      <div slot="badge" class="timer-badge-wrapper" style="position: absolute; top: ${topOffset}; ${horizontalPos} bottom: auto;">
+        <mushroom-badge-icon
+          class="timer-badge"
+          .icon=${"mdi:timer-outline"}
+          style="--main-color: var(--rgb-secondary-text-color);"
+        ></mushroom-badge-icon>
+      </div>
     `;
   }
 
@@ -747,12 +754,19 @@ export class LightCard
     if (!this._config?.motion_enabled) {
       return nothing;
     }
+    // Position motion icon at bottom-right when both icons are present, otherwise default position
+    const hasTimer = this._config?.timer_enabled;
+    const bottomOffset = hasTimer ? "-8px" : "-3px";
+    const rtl = computeRTL(this.hass);
+    const horizontalPos = rtl ? "left: -3px; right: auto;" : "right: -3px; left: auto;";
     return html`
-      <mushroom-badge-icon
-        slot="badge"
-        .icon=${"mdi:motion-sensor"}
-        style="--main-color: var(--rgb-secondary-text-color);"
-      ></mushroom-badge-icon>
+      <div slot="badge" class="motion-badge-wrapper" style="position: absolute; bottom: ${bottomOffset}; ${horizontalPos} top: auto;">
+        <mushroom-badge-icon
+          class="motion-badge"
+          .icon=${"mdi:motion-sensor"}
+          style="--main-color: var(--rgb-secondary-text-color);"
+        ></mushroom-badge-icon>
+      </div>
     `;
   }
 
@@ -929,6 +943,15 @@ export class LightCard
         }
         mushroom-card {
           position: relative;
+        }
+        /* RTL support for badge wrappers - inline styles handle positioning */
+        mushroom-state-item[rtl] .icon ::slotted(.timer-badge-wrapper) {
+          right: auto !important;
+          left: -3px !important;
+        }
+        mushroom-state-item[rtl] .icon ::slotted(.motion-badge-wrapper) {
+          right: auto !important;
+          left: -3px !important;
         }
       `,
     ];
