@@ -28,6 +28,6 @@ import "./cards/vacuum-card/vacuum-card";
 import "./badges/template/template-badge";
 
 console.info(
-  `%c🍄 Mushroom 🍄 - ${version}`,
+  `%c🍄 Super Mushroom 🍄 - ${version}`,
   "color: #ef5350; font-weight: 700;"
 );

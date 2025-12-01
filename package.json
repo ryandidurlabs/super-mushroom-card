@@ -1,7 +1,7 @@
 {
-  "name": "mushroom-cards",
-  "version": "5.0.8",
-  "description": "Home Assistant Mushroom Cards",
+  "name": "super-mushroom-cards",
+  "version": "1.0.0",
+  "description": "Super Mushroom Cards - Enhanced Mushroom Cards with Timer and Motion features",
   "main": "index.js",
   "scripts": {
     "start": "rollup -c --watch --bundleConfigAsCjs",
