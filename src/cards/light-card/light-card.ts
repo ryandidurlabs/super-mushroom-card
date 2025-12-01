@@ -285,15 +285,28 @@ export class LightCard
     // Check for existing timer in localStorage
     const timerKey = `timer_expiration_${this._config.entity}`;
     const storedExpiration = localStorage.getItem(timerKey);
+    const storedStartTime = localStorage.getItem(`${timerKey}_start`);
     
     if (storedExpiration && this._stateObj && isActive(this._stateObj)) {
       const expirationTime = parseInt(storedExpiration, 10);
-      const now = Date.now();
-      const remaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
+      const startTime = storedStartTime ? parseInt(storedStartTime, 10) : null;
       
-      if (remaining > 0) {
+      // Use entity's last_changed if available for more accurate calculation
+      let calculatedRemaining = 0;
+      if (startTime && this._stateObj.last_changed) {
+        const entityChanged = new Date(this._stateObj.last_changed).getTime();
+        const duration = expirationTime - startTime;
+        const elapsed = Date.now() - entityChanged;
+        calculatedRemaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+      } else {
+        // Fallback to simple calculation
+        const now = Date.now();
+        calculatedRemaining = Math.max(0, Math.ceil((expirationTime - now) / 1000));
+      }
+      
+      if (calculatedRemaining > 0) {
         this._timerExpirationTime = expirationTime;
-        this._timerRemaining = remaining;
+        this._timerRemaining = calculatedRemaining;
         this.startTimerInterval();
       } else {
         // Timer expired - turn off light
@@ -377,6 +390,7 @@ export class LightCard
     if (this._config?.entity) {
       const timerKey = `timer_expiration_${this._config.entity}`;
       localStorage.removeItem(timerKey);
+      localStorage.removeItem(`${timerKey}_start`);
     }
   }
 
@@ -418,22 +432,15 @@ export class LightCard
         this.brightness
       );
       stateDisplay = brightness;
-      // Add timer countdown if timer is enabled and active
-      if (
-        this._config?.timer_enabled &&
-        isActive(stateObj) &&
-        this._timerRemaining != null &&
-        this._timerRemaining > 0
-      ) {
-        stateDisplay = `${stateDisplay} • ${this.formatTime(this._timerRemaining)}`;
-      }
-    } else if (
+    }
+    
+    // Add timer countdown if timer is enabled and active (always show when timer is running)
+    if (
       this._config?.timer_enabled &&
       isActive(stateObj) &&
       this._timerRemaining != null &&
       this._timerRemaining > 0
     ) {
-      // Add timer even if no brightness
       stateDisplay = `${stateDisplay} • ${this.formatTime(this._timerRemaining)}`;
     }
 
@@ -448,6 +455,7 @@ export class LightCard
         class=${classMap({ "fill-container": appearance.fill_container })}
       >
         <mushroom-card .appearance=${appearance} ?rtl=${rtl}>
+          ${this.renderSettingsIcon()}
           <mushroom-state-item
             ?rtl=${rtl}
             .appearance=${appearance}
@@ -488,6 +496,29 @@ export class LightCard
         style="--main-color: var(--rgb-secondary-text-color);"
       ></mushroom-badge-icon>
     `;
+  }
+
+  protected renderSettingsIcon(): TemplateResult | typeof nothing {
+    return html`
+      <div class="settings-icon-container" @click=${this._openSettings}>
+        <ha-icon-button
+          .icon=${"mdi:cog"}
+          .label=${"Settings"}
+          class="settings-icon"
+        ></ha-icon-button>
+      </div>
+    `;
+  }
+
+  private _openSettings(e: Event): void {
+    e.stopPropagation();
+    // Open the card editor
+    const event = new CustomEvent("hass-edit-card", {
+      bubbles: true,
+      composed: true,
+      detail: { config: this._config },
+    });
+    this.dispatchEvent(event);
   }
 
   protected renderIcon(stateObj: LightEntity, icon?: string): TemplateResult {
@@ -607,6 +638,25 @@ export class LightCard
         mushroom-light-color-temp-control,
         mushroom-light-color-control {
           flex: 1;
+        }
+        ha-card {
+          position: relative;
+        }
+        .settings-icon-container {
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          z-index: 1;
+          cursor: pointer;
+        }
+        .settings-icon {
+          --mdc-icon-button-size: 32px;
+          --mdc-icon-size: 18px;
+          color: var(--secondary-text-color);
+          opacity: 0.7;
+        }
+        .settings-icon:hover {
+          opacity: 1;
         }
       `,
     ];
