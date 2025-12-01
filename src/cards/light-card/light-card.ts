@@ -65,7 +65,7 @@ const CONTROLS_ICONS: Record<LightCardControl, string> = {
 
 registerCustomCard({
   type: LIGHT_CARD_NAME,
-  name: "Mushroom Light Card",
+  name: "Super Mushroom Light Card",
   description: "Card for light entity",
 });
 

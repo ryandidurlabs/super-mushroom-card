@@ -36,7 +36,7 @@ import { isActionPending, isLocked, isUnlocked } from "./utils";
 
 registerCustomCard({
   type: LOCK_CARD_NAME,
-  name: "Mushroom Lock Card",
+  name: "Super Mushroom Lock Card",
   description: "Card for all lock entities",
 });
 

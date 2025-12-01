@@ -33,7 +33,7 @@ type TemplateResults = Partial<
 
 registerCustomCard({
   type: TITLE_CARD_NAME,
-  name: "Mushroom Title Card",
+  name: "Super Mushroom Title Card",
   description: "Title and subtitle to separate sections",
 });
 

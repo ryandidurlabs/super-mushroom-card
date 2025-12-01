@@ -37,7 +37,7 @@ import { HumidifierCardConfig } from "./humidifier-card-config";
 
 registerCustomCard({
   type: HUMIDIFIER_CARD_NAME,
-  name: "Mushroom Humidifier Card",
+  name: "Super Mushroom Humidifier Card",
   description: "Card for humidifier entity",
 });
 

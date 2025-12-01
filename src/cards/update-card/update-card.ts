@@ -39,7 +39,7 @@ import { getStateColor } from "./utils";
 
 registerCustomCard({
   type: UPDATE_CARD_NAME,
-  name: "Mushroom Update Card",
+  name: "Super Mushroom Update Card",
   description: "Card for update entity",
 });
 

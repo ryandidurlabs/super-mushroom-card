@@ -58,7 +58,7 @@ const CONTROLS_ICONS: Record<CoverCardControl, string> = {
 
 registerCustomCard({
   type: COVER_CARD_NAME,
-  name: "Mushroom Cover Card",
+  name: "Super Mushroom Cover Card",
   description: "Card for cover entity",
 });
 

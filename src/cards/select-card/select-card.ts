@@ -36,7 +36,7 @@ import { SelectCardConfig } from "./select-card-config";
 
 registerCustomCard({
   type: SELECT_CARD_NAME,
-  name: "Mushroom Select Card",
+  name: "Super Mushroom Select Card",
   description: "Card for select and input_select entities",
 });
 

@@ -60,7 +60,7 @@ const CONTROLS_ICONS: Record<ClimateCardControl, string> = {
 
 registerCustomCard({
   type: CLIMATE_CARD_NAME,
-  name: "Mushroom Climate Card",
+  name: "Super Mushroom Climate Card",
   description: "Card for climate entity",
 });
 

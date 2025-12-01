@@ -44,7 +44,7 @@ import { NumberCardConfig } from "./number-card-config";
 
 registerCustomCard({
   type: NUMBER_CARD_NAME,
-  name: "Mushroom Number Card",
+  name: "Super Mushroom Number Card",
   description: "Card for number and input number entity",
 });
 

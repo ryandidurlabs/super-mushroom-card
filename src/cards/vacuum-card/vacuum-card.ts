@@ -40,7 +40,7 @@ import { VacuumCardConfig } from "./vacuum-card-config";
 
 registerCustomCard({
   type: VACUUM_CARD_NAME,
-  name: "Mushroom Vacuum Card",
+  name: "Super Mushroom Vacuum Card",
   description: "Card for vacuum entity",
 });
 

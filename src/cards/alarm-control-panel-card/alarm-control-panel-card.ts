@@ -53,7 +53,7 @@ import {
 
 registerCustomCard({
   type: ALARM_CONTROl_PANEL_CARD_NAME,
-  name: "Mushroom Alarm Control Panel Card",
+  name: "Super Mushroom Alarm Control Panel Card",
   description: "Card for alarm control panel",
 });
 
