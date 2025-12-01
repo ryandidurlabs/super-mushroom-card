@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.0.17 (2024-12-01)
+
+### Fixed
+- **Duplicate custom element registration error** - Fixed "Failed to execute 'define' on 'CustomElementRegistry'" error
+  - Changed mushroom-select from decorator-based to manual registration with guard
+  - Added check to prevent duplicate registration if element already exists
+  - Resolves issue when resource is loaded multiple times
+
 ## Version 1.0.16 (2024-12-01)
 
 ### Fixed
